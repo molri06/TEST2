@@ -703,13 +703,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 26px;
-  transform: scale(calc(.9 + var(--melt) * .1));
+  /* 얼음의 폭이 가장 넓은 가운데 아래쪽에 상자를 앉힌다.
+     위쪽은 정육면체가 마름모로 좁아져 뚜껑이 삐져나온다. */
+  padding-top: 28px;
+  transform: scale(calc(.94 + var(--melt) * .06));
   transition: transform .35s ease-out;
 }
 
 #ice .chest svg {
-  width: 146px;
+  width: 96px;
   height: auto;
   filter: drop-shadow(0 4px 10px rgba(44, 59, 62, .22));
 }
@@ -734,6 +736,30 @@ body {
 @keyframes twinkle {
   0%, 100% { opacity: .3; transform: scale(.85); }
   50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* 갇힌 보물에서 새어 나오는 빛. 얼음 안에 있으므로 얼음이 녹은 만큼 같이 사라진다. */
+#ice .aura {
+  position: absolute;
+  inset: 0;
+  /* 정육면체 실루엣 밖으로 빛이 새지 않도록 같은 육각형으로 자른다. */
+  clip-path: polygon(50% 7%, 94% 30%, 94% 70%, 50% 93%, 6% 70%, 6% 30%);
+  background: radial-gradient(58% 42% at 50% 62%, rgba(255, 206, 116, .85), rgba(255, 206, 116, 0));
+  filter: blur(calc(6px + (1 - var(--melt)) * 6px));
+  opacity: calc(.3 + var(--melt) * .55);
+  transition: opacity .35s, filter .35s;
+}
+
+/* 얼음과 상자가 함께 놓인 바닥. */
+#ice .ground {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  width: 132px;
+  height: 13px;
+  margin-left: -66px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(74, 58, 44, .22), rgba(74, 58, 44, 0));
 }
 
 /* 얼음덩어리가 놓인 자리. 녹는 경계선과 물방울이 이 상자를 기준으로 움직인다. */

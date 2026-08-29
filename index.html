@@ -79,7 +79,6 @@
               </radialGradient>
             </defs>
 
-            <ellipse cx="75" cy="112" rx="52" ry="7" fill="#4a3a2c" opacity=".18"/>
 
             <!-- 뒤로 젖혀 열린 뚜껑 -->
             <g transform="rotate(24 130 58)">
@@ -130,27 +129,35 @@
 
         <div class="block">
           <div class="cube">
+            <span class="aura"></span>
             <span class="glass"></span>
             <svg viewBox="0 0 150 132" aria-hidden="true">
               <defs>
                 <linearGradient id="ice-top" x1="0" y1="0" x2=".7" y2="1">
-                  <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
-                  <stop offset="1" stop-color="#d6ebf4" stop-opacity=".76"/>
+                  <stop offset="0" stop-color="#ffffff" stop-opacity=".94"/>
+                  <stop offset="1" stop-color="#d9ecec" stop-opacity=".72"/>
                 </linearGradient>
                 <linearGradient id="ice-left" x1="0" y1="0" x2=".3" y2="1">
-                  <stop offset="0" stop-color="#cde3ee" stop-opacity=".68"/>
-                  <stop offset="1" stop-color="#9dc2d3" stop-opacity=".52"/>
+                  <stop offset="0" stop-color="#cbe4e4" stop-opacity=".62"/>
+                  <stop offset="1" stop-color="#9bc4c4" stop-opacity=".46"/>
                 </linearGradient>
                 <linearGradient id="ice-right" x1="1" y1="0" x2=".2" y2="1">
-                  <stop offset="0" stop-color="#f0f8fb" stop-opacity=".6"/>
-                  <stop offset="1" stop-color="#b3d2e0" stop-opacity=".44"/>
+                  <stop offset="0" stop-color="#eef7f6" stop-opacity=".54"/>
+                  <stop offset="1" stop-color="#b2d5d4" stop-opacity=".4"/>
                 </linearGradient>
+                <radialGradient id="ice-warm" cx=".5" cy=".62" r=".5">
+                  <stop offset="0" stop-color="#ffd88a" stop-opacity=".55"/>
+                  <stop offset="1" stop-color="#ffd88a" stop-opacity="0"/>
+                </radialGradient>
               </defs>
 
               <!-- 세 면 -->
               <path d="M75 9 141 39 75 69 9 39z" fill="url(#ice-top)"/>
               <path d="M9 39 75 69v54L9 93z" fill="url(#ice-left)"/>
               <path d="M141 39 75 69v54l66-30z" fill="url(#ice-right)"/>
+
+              <!-- 갇힌 보물에서 새어 나와 얼음 속에 번지는 빛 -->
+              <ellipse cx="75" cy="82" rx="46" ry="30" fill="url(#ice-warm)"/>
 
               <!-- 안쪽 균열과 기포 -->
               <g fill="#ffffff" opacity=".62">
@@ -175,6 +182,8 @@
                 <path d="M9 39v54l66 30 66-30V39" stroke="#ffffff" stroke-width="1.6" opacity=".55"/>
                 <path d="M75 69v54" stroke="#ffffff" stroke-width="1.4" opacity=".5"/>
                 <path d="M18 43 70 66" stroke="#ffffff" stroke-width="2" opacity=".45"/>
+                <path d="M9 93 75 123 141 93" stroke="#f2c87e" stroke-width="2.4" opacity=".5"/>
+                <path d="M75 69v54" stroke="#f2c87e" stroke-width="1.2" opacity=".3"/>
               </g>
             </svg>
           </div>
@@ -185,6 +194,7 @@
           <span class="drop d3"></span>
         </div>
 
+        <span class="ground"></span>
         <span class="puddle"></span>
         <p id="ice-label">얼음 속에 무언가 있습니다</p>
       </div>
