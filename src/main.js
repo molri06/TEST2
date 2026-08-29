@@ -14,6 +14,22 @@ const MAX_SCALE = 4;
 const FONT_SIZES = [12, 14, 16, 20, 24, 32, 48];
 const DEFAULT_FONT = 14;
 
+/** 주신 돋보기 그림을 그대로 옮긴 배지(보라 테, 옅은 렌즈, 노란 이음쇠, 주황 손잡이). */
+const MAGNIFIER = `<svg viewBox="0 0 28 28" aria-hidden="true">
+  <path d="M11.5 16.5 5 23" stroke="#d5852a" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M12.8 15.2 11 17" stroke="#f3c93f" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="17" cy="11" r="7.6" fill="#e7effb" stroke="#6f6ab8" stroke-width="3.6"/>
+  <path d="M13.2 8.2a5 5 0 0 1 2.6-2.5" stroke="#fff" stroke-width="1.3"
+        stroke-linecap="round" fill="none"/>
+</svg>`;
+
+/** 카드에서 바로 열 검색 엔진. 새 탭(크롬)에서 열린다. */
+const ENGINES = [
+  { name: '구글', host: 'google.com', url: (q) => `https://www.google.com/search?q=${q}` },
+  { name: '네이버', host: 'naver.com', url: (q) => `https://search.naver.com/search.naver?query=${q}` },
+  { name: '유튜브', host: 'youtube.com', url: (q) => `https://www.youtube.com/results?search_query=${q}` },
+];
+
 const state = load();
 const els = new Map(); // note.id -> element
 
@@ -54,6 +70,7 @@ function createNote(props) {
 }
 
 function removeNote(note) {
+  if (card?.note === note) closeCard();
   state.notes = state.notes.filter((n) => n !== note);
   els.get(note.id)?.remove();
   els.delete(note.id);
@@ -79,6 +96,7 @@ function renderNote(note) {
   flag.querySelector('input').addEventListener('change', (e) => {
     note.searchable = e.target.checked;
     el.classList.toggle('private', !note.searchable);
+    if (!note.searchable && card?.note === note) closeCard();
     save(state);
     if (!panel.hidden) runSearch();
   });
@@ -92,6 +110,19 @@ function renderNote(note) {
       '<button data-act="del" class="danger" title="삭제">✕</button>';
   tools.append(...buttons.children);
   el.append(tools);
+
+  if (!note.src) {
+    const badge = document.createElement('button');
+    badge.type = 'button';
+    badge.className = 'badge';
+    badge.title = '이 노트 내용으로 웹 검색';
+    badge.innerHTML = MAGNIFIER;
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCard(note);
+    });
+    el.append(badge);
+  }
 
   if (note.src) {
     const img = document.createElement('img');
@@ -169,7 +200,9 @@ viewport.addEventListener('pointerdown', (e) => {
   }
 
   selectNote(noteEl);
-  if (e.target.closest('.tools')) return;
+  // 툴바와 돋보기 배지는 눌러야 하므로 드래그를 시작하지 않는다.
+  // (포인터를 노트에 캡처해 버리면 그쪽 click 이벤트가 사라진다.)
+  if (e.target.closest('.tools, .badge')) return;
 
   // 텍스트를 직접 클릭했다면 편집이 목적이므로 드래그하지 않는다.
   if (e.target.classList.contains('text')) return;
@@ -186,6 +219,7 @@ viewport.addEventListener('pointerdown', (e) => {
     note.y = Math.round(origin.y + p.y - start.y);
     noteEl.style.left = `${note.x}px`;
     noteEl.style.top = `${note.y}px`;
+    if (card?.note === note) placeCard();
   };
   const up = () => {
     noteEl.classList.remove('dragging');
@@ -267,6 +301,7 @@ document.addEventListener('keydown', (e) => {
     removeNote(noteOf(selected));
   } else if (e.key === 'Escape') {
     if (!panel.hidden) closeSearch();
+    closeCard();
     document.activeElement?.blur();
     selectNote(null); // 빈 노트는 여기서 정리된다
   }
@@ -301,6 +336,69 @@ viewport.addEventListener('drop', (e) => {
     reader.readAsDataURL(file);
   }
 });
+
+/* --- 웹 검색 카드 ------------------------------------------------------- */
+
+let card = null; // { note, box, line }
+
+function toggleCard(note) {
+  const open = card?.note === note;
+  closeCard();
+  if (open) return;
+
+  const query = note.text.trim();
+  if (!query) return;
+  const encoded = encodeURIComponent(query);
+
+  const box = document.createElement('div');
+  box.className = 'card';
+
+  const label = document.createElement('span');
+  label.className = 'q';
+  label.append('검색어 ', Object.assign(document.createElement('b'), { textContent: query }));
+  box.append(label);
+
+  for (const engine of ENGINES) {
+    const a = document.createElement('a');
+    a.href = engine.url(encoded);
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.append(
+      `${engine.name}에서 검색`,
+      Object.assign(document.createElement('span'), { textContent: engine.host }),
+    );
+    box.append(a);
+  }
+
+  const line = document.createElement('div');
+  line.className = 'link';
+
+  world.append(line, box);
+  card = { note, box, line };
+  placeCard();
+}
+
+function closeCard() {
+  card?.box.remove();
+  card?.line.remove();
+  card = null;
+}
+
+/** 노트 왼쪽 아래에서 'ㄴ' 자로 내려와 카드로 이어지도록 위치를 잡는다. */
+function placeCard() {
+  const { note, box, line } = card;
+  const el = els.get(note.id);
+  const drop = 34;   // 아래로 내려오는 길이
+  const reach = 22;  // 오른쪽으로 뻗는 길이
+
+  line.style.left = `${note.x + 14}px`;
+  line.style.top = `${note.y + el.offsetHeight}px`;
+  line.style.width = `${reach}px`;
+  line.style.height = `${drop}px`;
+
+  box.style.left = `${note.x + 14 + reach}px`;
+  box.style.top = `${note.y + el.offsetHeight + drop - 18}px`;
+}
 
 /* --- 검색 -------------------------------------------------------------- */
 

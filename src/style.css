@@ -99,6 +99,25 @@ body {
 .note.dragging { cursor: grabbing; }
 .note.image { padding: 6px; }
 
+/* 검색 대상 노트임을 알리는 왼쪽 위 돋보기 배지. */
+.note .badge {
+  position: absolute;
+  top: -13px;
+  left: -13px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 2px rgba(28, 28, 26, .25));
+}
+
+.note .badge svg { display: block; width: 100%; height: 100%; }
+.note .badge:hover { transform: scale(1.12); }
+.note.private .badge { display: none; }
+
 /* 메모 전용(검색 제외) 노트는 왼쪽 띠로 구분한다. */
 .note.private { border-left: 3px solid var(--muted); padding-left: 11px; }
 
@@ -131,8 +150,8 @@ body {
 
 .note .tools {
   position: absolute;
-  top: -33px;
-  left: -1px;
+  top: -34px;
+  left: 18px;
   display: none;
   align-items: center;
   gap: 2px;
@@ -176,6 +195,54 @@ body {
 .note .tools .flag:hover { background: var(--bg); color: var(--text); }
 .note .tools .flag input { margin: 0; cursor: pointer; }
 .note .tools .sep { width: 1px; height: 14px; background: var(--border); }
+
+/* --- 검색 카드 ---------------------------------------------------------- */
+
+/* 노트 왼쪽 아래에서 내려와 카드로 이어지는 'ㄴ' 자 연결선. */
+.link {
+  position: absolute;
+  border-left: 1.5px solid var(--border-strong);
+  border-bottom: 1.5px solid var(--border-strong);
+  border-bottom-left-radius: 8px;
+  pointer-events: none;
+}
+
+.card {
+  position: absolute;
+  width: 260px;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.card .q {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card .q b { color: var(--text); font-weight: 500; }
+
+.card a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.card a:hover { background: var(--bg); }
+.card a span { color: var(--muted); font: 400 11px/1 var(--mono); }
 
 /* --- chrome ------------------------------------------------------------ */
 
@@ -284,6 +351,8 @@ body {
 #banner:not([hidden]) ~ #search { top: 76px; }
 
 /* --- search panel ------------------------------------------------------ */
+
+#search[hidden] { display: none; }
 
 #search {
   position: fixed;
