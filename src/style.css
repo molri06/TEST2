@@ -82,7 +82,7 @@ html, body {
 
 .note .text {
   margin: 0;
-  min-width: 60px;
+  min-width: 200px;
   min-height: 1.55em;
   outline: none;
   white-space: pre-wrap;
