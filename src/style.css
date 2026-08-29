@@ -99,6 +99,19 @@ body {
 .note.dragging { cursor: grabbing; }
 .note.image { padding: 6px; }
 
+/* 작성 시각. 본문보다 확실히 작게, 오른쪽 아래에 붙는다. */
+.note .stamp {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font: 400 10px/1.4 var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+}
+
+.note.image .stamp { margin: 4px 4px 0 0; }
+
 /* 검색 대상 노트임을 알리는 왼쪽 위 돋보기 배지. */
 .note .badge {
   position: absolute;

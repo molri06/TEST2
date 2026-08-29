@@ -60,6 +60,7 @@ function createNote(props) {
     src: null,
     width: null,
     fontSize: DEFAULT_FONT,
+    created: Date.now(),
     searchable: true, // 기본은 검색 대상. 체크를 풀면 메모 전용이 된다.
     ...props,
   };
@@ -153,6 +154,12 @@ function renderNote(note) {
     el.append(text);
   }
 
+  const stamp = document.createElement('time');
+  stamp.className = 'stamp';
+  stamp.dateTime = new Date(note.created).toISOString();
+  stamp.textContent = formatStamp(note.created);
+  el.append(stamp);
+
   world.append(el);
   els.set(note.id, el);
   return el;
@@ -175,6 +182,14 @@ function purgeEmpty(keep) {
 }
 
 const noteOf = (el) => state.notes.find((n) => n.id === el.dataset.id);
+
+/** 2026.08.29 14:03 형식. */
+function formatStamp(ms) {
+  const d = new Date(ms);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} `
+    + `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function setFontSize(note, delta) {
   const i = FONT_SIZES.indexOf(note.fontSize);

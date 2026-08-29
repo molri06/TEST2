@@ -17,9 +17,10 @@ export function load() {
     if (!raw) return emptyState();
     const parsed = JSON.parse(raw);
     return {
-      // searchable은 나중에 생긴 필드라, 옛 노트는 검색 대상으로 본다.
+      // searchable·created는 나중에 생긴 필드다. 옛 노트는 검색 대상으로 보고,
+      // 작성 시각은 id 앞부분(생성 시각을 36진수로 적어 둔 값)에서 되살린다.
       notes: (Array.isArray(parsed.notes) ? parsed.notes : [])
-        .map((n) => ({ searchable: true, ...n })),
+        .map((n) => ({ searchable: true, created: idTime(n.id), ...n })),
       view: { ...emptyState().view, ...parsed.view },
       bannerClosed: parsed.bannerClosed === true,
     };
@@ -45,6 +46,12 @@ export function save(state) {
       console.warn('저장하지 못했습니다:', err);
     }
   });
+}
+
+/** newId가 심어 둔 생성 시각을 되읽는다. 못 읽으면 지금 시각으로 둔다. */
+function idTime(id) {
+  const ms = parseInt(String(id).slice(0, -5), 36);
+  return Number.isFinite(ms) && ms > 0 ? ms : Date.now();
 }
 
 export const newId = () =>
