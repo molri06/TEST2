@@ -679,3 +679,134 @@ body {
 #typing-restart:focus-visible,
 #typing-song:focus-visible,
 #typing-close:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+
+/* --- 얼음과 보물 -------------------------------------------------------- */
+
+/*
+ * --melt(0~1)이 커질수록 얼음이 위로 물러나고 흐림이 걷힌다.
+ * 값은 정확히 친 글자 수에서 틀린 자리를 뺀 만큼 JS가 올린다.
+ */
+#ice {
+  position: relative;
+  height: 132px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--t-field), var(--t-card));
+  overflow: hidden;
+}
+
+#ice .chest {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 20px; /* 아래 안내 문구와 겹치지 않게 */
+  transform: scale(calc(.86 + var(--melt) * .14));
+  transition: transform .35s ease-out;
+}
+
+#ice .chest svg {
+  width: 132px;
+  height: auto;
+  filter: drop-shadow(0 3px 6px rgba(44, 59, 62, .16));
+}
+
+#ice .sparkle {
+  position: absolute;
+  color: var(--t-accent);
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+#ice .s1 { top: 16%; left: 26%; }
+#ice .s2 { top: 24%; right: 24%; font-size: 12px; }
+#ice .s3 { bottom: 24%; left: 34%; font-size: 11px; }
+
+#ice.open .sparkle { opacity: 1; animation: twinkle 1.6s ease-in-out infinite; }
+#ice.open .s2 { animation-delay: .35s; }
+#ice.open .s3 { animation-delay: .7s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: .25; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* 얼음층. 아래에서부터 녹아 위로 물러난다. */
+#ice .frost {
+  position: absolute;
+  inset: 0;
+  transform-origin: top;
+  transform: scaleY(calc(1 - var(--melt)));
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, .82), rgba(172, 211, 226, .72) 55%, rgba(88, 168, 163, .5)),
+    var(--t-now);
+  backdrop-filter: blur(calc((1 - var(--melt)) * 5px));
+  border-bottom: 2px solid rgba(255, 255, 255, .75);
+  transition: transform .35s ease-out, opacity .35s;
+  opacity: calc(.35 + (1 - var(--melt)) * .65);
+}
+
+#ice .crack {
+  position: absolute;
+  width: 1.5px;
+  background: rgba(255, 255, 255, .9);
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+#ice .c1 { top: 6%; left: 30%; height: 42%; transform: rotate(16deg); }
+#ice .c2 { top: 12%; left: 58%; height: 34%; transform: rotate(-22deg); }
+#ice .c3 { top: 30%; left: 44%; height: 30%; transform: rotate(8deg); }
+
+#ice[data-stage="cracking"] .c1,
+#ice[data-stage="melting"] .c1,
+#ice[data-stage="melting"] .c2,
+#ice[data-stage="melting"] .c3 { opacity: .9; }
+
+/* 녹으면서 떨어지는 물방울. */
+#ice .drop {
+  position: absolute;
+  bottom: -6px;
+  width: 5px;
+  height: 7px;
+  border-radius: 0 60% 60% 60%;
+  background: var(--t-now);
+  opacity: 0;
+  transform: rotate(45deg);
+}
+
+#ice .d1 { left: 24%; }
+#ice .d2 { left: 52%; }
+#ice .d3 { left: 76%; }
+
+#ice[data-stage="cracking"] .drop,
+#ice[data-stage="melting"] .drop { animation: drip 1.5s ease-in infinite; }
+#ice .d2 { animation-delay: .5s; }
+#ice .d3 { animation-delay: 1s; }
+
+@keyframes drip {
+  0% { opacity: 0; transform: translateY(0) rotate(45deg) scale(.7); }
+  25% { opacity: .95; }
+  100% { opacity: 0; transform: translateY(26px) rotate(45deg) scale(1); }
+}
+
+#ice-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  margin: 0;
+  color: var(--t-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+#ice.open #ice-label { color: var(--t-accent); font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) {
+  #ice .chest, #ice .frost { transition: none; }
+  #ice .drop, #ice.open .sparkle { animation: none; }
+  #ice.open .sparkle { opacity: 1; }
+}

@@ -514,6 +514,8 @@ const statAcc = document.getElementById('stat-acc');
 const statProgress = document.getElementById('stat-progress');
 const statBest = document.getElementById('stat-best');
 const picker = document.getElementById('typing-song');
+const ice = document.getElementById('ice');
+const iceLabel = document.getElementById('ice-label');
 
 const MAX_LINES = 8;
 
@@ -626,6 +628,7 @@ function startGame() {
   play = {
     lines: lines.slice(0, MAX_LINES),
     at: 0,
+    total: 0,
     wrong: new Set(),
     correct: 0,
     missed: 0,
@@ -641,6 +644,7 @@ function startGame() {
     return;
   }
 
+  play.total = play.lines.reduce((sum, line) => sum + line.length, 0);
   sourceLabel.textContent = `${song.note} · ${play.lines.length}줄`;
   resultLine.hidden = true;
   input.disabled = false;
@@ -650,6 +654,7 @@ function startGame() {
   showBest();
   renderLine();
   updateStats();
+  updateMelt();
 }
 
 function renderLine() {
@@ -680,6 +685,33 @@ function updateStats() {
   statAcc.textContent = attempts ? `${Math.round((play.correct / attempts) * 100)}%` : '100%';
 }
 
+/** 틀린 자리 하나당 0.6글자만큼 다시 언다. 정확할수록 빨리 녹는다. */
+const WRONG_COST = 0.6;
+
+function meltRatio() {
+  const line = play.lines[play.at] ?? '';
+  const typed = input.value;
+  let prefix = 0;
+  while (prefix < typed.length && typed[prefix] === line[prefix]) prefix += 1;
+
+  const gained = play.correct + prefix;
+  const lost = (play.missed + play.wrong.size) * WRONG_COST;
+  if (!play.total) return 0;
+  return Math.min(1, Math.max(0, (gained - lost) / play.total));
+}
+
+function updateMelt() {
+  const melt = meltRatio();
+  ice.style.setProperty('--melt', melt.toFixed(3));
+  ice.dataset.stage = melt >= 0.99 ? 'open' : melt >= 0.5 ? 'melting' : melt >= 0.15 ? 'cracking' : 'frozen';
+  ice.classList.toggle('open', melt >= 0.99);
+
+  iceLabel.textContent = melt >= 0.99
+    ? '보물이 드러났습니다'
+    : `얼음 ${Math.round(melt * 100)}% 녹음`;
+  return melt;
+}
+
 function showBest() {
   const best = state.typingBest;
   statBest.textContent = best.cpm ? `${best.cpm}타 · ${best.accuracy}%` : '—';
@@ -702,8 +734,14 @@ function finishGame() {
     showBest();
   }
 
+  const melt = updateMelt();
+  const treasure = melt >= 0.99;
+
   resultLine.textContent = `${play.lines.length}줄을 ${seconds}초에 마쳤습니다. `
-    + `분당 ${cpm}타, 정확도 ${accuracy}%.`
+    + `분당 ${cpm}타, 정확도 ${accuracy}%. `
+    + (treasure
+        ? '얼음이 다 녹아 보물을 찾았습니다.'
+        : `얼음이 ${Math.round(melt * 100)}%까지 녹았습니다. 조금 더 정확하면 보물이 나옵니다.`)
     + (record ? ' 최고 기록입니다.' : '');
   resultLine.hidden = false;
   statCpm.textContent = cpm;
@@ -726,6 +764,7 @@ input.addEventListener('input', () => {
 
   renderLine();
   updateStats();
+  updateMelt();
 
   if (typed === line) {
     play.correct += line.length;
@@ -735,7 +774,7 @@ input.addEventListener('input', () => {
     input.value = '';
 
     if (play.at >= play.lines.length) finishGame();
-    else { renderLine(); updateStats(); }
+    else { renderLine(); updateStats(); updateMelt(); }
   }
 });
 

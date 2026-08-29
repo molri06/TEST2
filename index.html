@@ -55,6 +55,36 @@
         <select id="typing-song"></select>
       </label>
 
+      <div id="ice" style="--melt: 0">
+        <div class="chest">
+          <svg viewBox="0 0 120 88" aria-hidden="true">
+            <ellipse cx="60" cy="80" rx="42" ry="6" fill="#cccadf" opacity=".5"/>
+            <path d="M22 40a38 30 0 0 1 76 0z" fill="#58a8a3"/>
+            <path d="M22 40h76v30a6 6 0 0 1-6 6H28a6 6 0 0 1-6-6z" fill="#fddcc2"/>
+            <rect x="52" y="32" width="16" height="22" rx="3" fill="#fbf6d0"/>
+            <circle cx="60" cy="43" r="3.4" fill="#58a8a3"/>
+            <path d="M22 40h76" stroke="#fbb3ab" stroke-width="3"/>
+            <circle cx="38" cy="60" r="4" fill="#fbb3ab"/>
+            <circle cx="82" cy="60" r="4" fill="#acd3e2"/>
+            <circle cx="60" cy="66" r="3" fill="#cccadf"/>
+          </svg>
+          <span class="sparkle s1">✦</span>
+          <span class="sparkle s2">✦</span>
+          <span class="sparkle s3">✦</span>
+        </div>
+
+        <div class="frost">
+          <span class="crack c1"></span>
+          <span class="crack c2"></span>
+          <span class="crack c3"></span>
+          <span class="drop d1"></span>
+          <span class="drop d2"></span>
+          <span class="drop d3"></span>
+        </div>
+
+        <p id="ice-label">얼음 속에 무언가 있습니다</p>
+      </div>
+
       <p id="typing-target" class="target" aria-live="polite"></p>
       <input id="typing-input" type="text" autocomplete="off" autocapitalize="off"
              spellcheck="false" placeholder="위 문장을 그대로 입력하세요">
