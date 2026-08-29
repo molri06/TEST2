@@ -513,20 +513,78 @@ const statCpm = document.getElementById('stat-cpm');
 const statAcc = document.getElementById('stat-acc');
 const statProgress = document.getElementById('stat-progress');
 const statBest = document.getElementById('stat-best');
+const picker = document.getElementById('typing-song');
 
 const MAX_LINES = 8;
 
-/** 노트가 하나도 없을 때 쓰는 기본 문장. */
-const SAMPLE_LINES = [
-  '생각은 흩어져 있을 때 가장 자유롭다.',
-  '떠오른 것을 먼저 적고 정리는 나중에 한다.',
-  '캔버스는 넓고 노트는 가볍다.',
+/**
+ * 연습할 노랫말. 저작권이 소멸한 것만 싣는다 —
+ * 국가, 작자 미상의 전통 민요, 수백 년 된 옛 시조.
+ * 요즘 가요 가사는 저작권이 살아 있어 넣지 않는다. 그런 곡은 노트에 적어 두고
+ * '내 노트'로 연습하면 된다.
+ */
+const SONGS = [
+  {
+    key: 'anthem',
+    title: '애국가 (1절·후렴)',
+    note: '대한민국 국가 · 작자 미상',
+    lines: [
+      '동해물과 백두산이 마르고 닳도록',
+      '하느님이 보우하사 우리나라 만세',
+      '무궁화 삼천리 화려강산',
+      '대한사람 대한으로 길이 보전하세',
+    ],
+  },
+  {
+    key: 'arirang',
+    title: '아리랑',
+    note: '전통 민요 · 작자 미상',
+    lines: [
+      '아리랑 아리랑 아라리요',
+      '아리랑 고개로 넘어간다',
+    ],
+  },
+  {
+    key: 'bluebird',
+    title: '새야 새야 파랑새야',
+    note: '전통 민요 · 작자 미상',
+    lines: [
+      '새야 새야 파랑새야',
+      '녹두밭에 앉지 마라',
+    ],
+  },
+  {
+    key: 'doraji',
+    title: '도라지 타령',
+    note: '전통 민요 · 작자 미상',
+    lines: [
+      '도라지 도라지 백도라지',
+      '심심산천에 백도라지',
+    ],
+  },
+  {
+    key: 'sijo',
+    title: '옛 시조',
+    note: '정몽주·황진이 · 14~16세기',
+    lines: [
+      '이 몸이 죽고 죽어 일백 번 고쳐 죽어',
+      '백골이 진토되어 넋이라도 있고 없고',
+      '청산리 벽계수야 수이 감을 자랑 마라',
+      '일도창해하면 다시 오기 어려워라',
+    ],
+  },
+  {
+    key: 'notes',
+    title: '내 노트',
+    note: '캔버스에 적어 둔 내 문장',
+    lines: null, // 열 때마다 노트에서 모은다
+  },
 ];
 
 let play = null; // { lines, at, wrong, correct, missed, startedAt, timer }
 
-/** 연습할 문장을 내 노트에서 뽑는다. 짧은 조각과 중복은 버린다. */
-function collectLines() {
+/** '내 노트' 모드에서 쓸 문장. 짧은 조각과 중복은 버리고 섞는다. */
+function collectNoteLines() {
   const seen = new Set();
   const lines = [];
 
@@ -544,8 +602,10 @@ function collectLines() {
     const j = Math.floor(Math.random() * (i + 1));
     [lines[i], lines[j]] = [lines[j], lines[i]];
   }
-  return { lines: lines.slice(0, MAX_LINES), fromNotes: lines.length > 0 };
+  return lines;
 }
+
+const songOf = (key) => SONGS.find((s) => s.key === key) ?? SONGS[0];
 
 function openTyping() {
   game.hidden = false;
@@ -559,10 +619,12 @@ function closeTyping() {
 }
 
 function startGame() {
-  const { lines, fromNotes } = collectLines();
+  const song = songOf(picker.value);
+  const lines = song.lines ?? collectNoteLines();
+
   clearInterval(play?.timer);
   play = {
-    lines: fromNotes ? lines : SAMPLE_LINES.slice(),
+    lines: lines.slice(0, MAX_LINES),
     at: 0,
     wrong: new Set(),
     correct: 0,
@@ -571,9 +633,15 @@ function startGame() {
     timer: null,
   };
 
-  sourceLabel.textContent = fromNotes
-    ? `내 노트 ${play.lines.length}줄로 연습합니다`
-    : '노트가 아직 없어 기본 문장으로 연습합니다';
+  if (!play.lines.length) {
+    // '내 노트'인데 적어 둔 문장이 없는 경우.
+    sourceLabel.textContent = '노트에 적어 둔 문장이 없어 애국가로 바꿉니다';
+    picker.value = 'anthem';
+    startGame();
+    return;
+  }
+
+  sourceLabel.textContent = `${song.note} · ${play.lines.length}줄`;
   resultLine.hidden = true;
   input.disabled = false;
   input.value = '';
@@ -678,6 +746,20 @@ input.addEventListener('paste', (e) => e.preventDefault());
 input.addEventListener('keydown', (e) => {
   e.stopPropagation();
   if (e.key === 'Escape') closeTyping();
+});
+
+for (const song of SONGS) {
+  const option = document.createElement('option');
+  option.value = song.key;
+  option.textContent = song.title;
+  picker.append(option);
+}
+picker.value = songOf(state.typingSong).key;
+
+picker.addEventListener('change', () => {
+  state.typingSong = picker.value;
+  save(state);
+  startGame();
 });
 
 document.getElementById('typing-open').addEventListener('click', openTyping);
