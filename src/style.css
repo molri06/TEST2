@@ -1,0 +1,185 @@
+:root {
+  color-scheme: light dark;
+
+  --bg: #f5f5f4;
+  --dot: #d8d8d5;
+  --surface: #ffffff;
+  --border: #e2e2df;
+  --border-strong: #c9c9c4;
+  --text: #1c1c1a;
+  --muted: #8a8a84;
+  --accent: #2563eb;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a19;
+    --dot: #2e2e2c;
+    --surface: #232322;
+    --border: #333331;
+    --border-strong: #4a4a47;
+    --text: #ececeb;
+    --muted: #8f8f8a;
+    --accent: #5b8cf5;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 4px 14px rgba(0, 0, 0, .3);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- canvas ------------------------------------------------------------ */
+
+#viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  cursor: default;
+  touch-action: none;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+}
+
+#viewport.panning { cursor: grabbing; }
+#viewport.dropping { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+#world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* --- note -------------------------------------------------------------- */
+
+.note {
+  position: absolute;
+  min-width: 80px;
+  max-width: 520px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: default;
+}
+
+.note:hover { border-color: var(--border-strong); }
+.note.selected { border-color: var(--accent); box-shadow: var(--shadow), 0 0 0 1px var(--accent); }
+.note.dragging { cursor: grabbing; }
+
+.note .text {
+  margin: 0;
+  min-width: 60px;
+  min-height: 1.55em;
+  outline: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.note .text:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+}
+
+.note img {
+  display: block;
+  max-width: 100%;
+  border-radius: 3px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.note.image { padding: 6px; }
+
+/* per-note toolbar */
+.note .tools {
+  position: absolute;
+  top: -30px;
+  left: 0;
+  display: none;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.note.selected .tools { display: flex; }
+
+.note .tools button {
+  width: 24px;
+  height: 22px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.note .tools button:hover { background: var(--bg); color: var(--text); }
+.note .tools button.danger:hover { color: #dc2626; }
+
+/* --- chrome ------------------------------------------------------------ */
+
+#bar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+#bar #zoom {
+  min-width: 48px;
+  padding: 0 6px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+#bar button {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+#bar button:hover { background: var(--bg); }
+
+#hint {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  transition: opacity .4s;
+}
+
+#hint.gone { opacity: 0; }
