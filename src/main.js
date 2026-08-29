@@ -3,7 +3,7 @@ import { load, save, newId } from './store.js';
 const viewport = document.getElementById('viewport');
 const world = document.getElementById('world');
 const zoomLabel = document.getElementById('zoom');
-const hint = document.getElementById('hint');
+const banner = document.getElementById('banner');
 const panel = document.getElementById('search');
 const query = document.getElementById('query');
 const results = document.getElementById('results');
@@ -112,6 +112,13 @@ function renderNote(note) {
     });
     // 편집 중에는 캔버스 단축키가 아니라 글자 입력이 우선이다.
     text.addEventListener('keydown', (e) => e.stopPropagation());
+    // 내용 없이 벗어난 노트는 실수로 만든 것으로 보고 지운다.
+    // 같은 노트의 툴바를 누른 것뿐이라면 아직 작성 중이므로 남겨 둔다.
+    text.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!note.text.trim() && !el.contains(document.activeElement)) removeNote(note);
+      });
+    });
     el.append(text);
   }
 
@@ -121,8 +128,19 @@ function renderNote(note) {
 }
 
 function selectNote(el) {
+  purgeEmpty(el);
   world.querySelectorAll('.note.selected').forEach((n) => n.classList.remove('selected'));
   el?.classList.add('selected');
+}
+
+/** 내용 없이 방치된 노트는 남기지 않는다. 지금 다루는 노트(keep)는 예외. */
+function purgeEmpty(keep) {
+  for (const note of [...state.notes]) {
+    if (note.src || note.text.trim()) continue;
+    const el = els.get(note.id);
+    if (el === keep || el.contains(document.activeElement)) continue;
+    removeNote(note);
+  }
 }
 
 const noteOf = (el) => state.notes.find((n) => n.id === el.dataset.id);
@@ -226,7 +244,6 @@ viewport.addEventListener('dblclick', (e) => {
   const el = els.get(note.id);
   selectNote(el);
   el.querySelector('.text').focus();
-  dismissHint();
 });
 
 world.addEventListener('click', (e) => {
@@ -250,8 +267,8 @@ document.addEventListener('keydown', (e) => {
     removeNote(noteOf(selected));
   } else if (e.key === 'Escape') {
     if (!panel.hidden) closeSearch();
-    selectNote(null);
     document.activeElement?.blur();
+    selectNote(null); // 빈 노트는 여기서 정리된다
   }
 });
 
@@ -278,7 +295,6 @@ viewport.addEventListener('drop', (e) => {
       const probe = new Image();
       probe.onload = () => {
         createNote({ ...at, src: reader.result, width: Math.min(320, probe.width) });
-        dismissHint();
       };
       probe.src = reader.result;
     };
@@ -374,10 +390,15 @@ query.addEventListener('keydown', (e) => {
 
 /* --- 시작 ------------------------------------------------------------- */
 
-function dismissHint() {
-  hint.classList.add('gone');
+function showBanner(show) {
+  banner.hidden = !show;
+  state.bannerClosed = !show;
+  save(state);
 }
 
+document.getElementById('banner-close').addEventListener('click', () => showBanner(false));
+document.getElementById('help').addEventListener('click', () => showBanner(banner.hidden));
+
+banner.hidden = state.bannerClosed;
 state.notes.forEach(renderNote);
 applyView();
-if (state.notes.length) dismissHint();

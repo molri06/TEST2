@@ -214,19 +214,74 @@ body {
 
 #bar button:hover { background: var(--bg); }
 
-#hint {
+/* --- 사용법 배너 -------------------------------------------------------- */
+
+#banner {
   position: fixed;
-  left: 50%;
-  bottom: 22px;
-  margin: 0;
-  transform: translateX(-50%);
-  color: var(--muted);
-  font-size: 13px;
-  pointer-events: none;
-  transition: opacity .4s;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px 9px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
-#hint.gone { opacity: 0; }
+#banner[hidden] { display: none; }
+
+#banner dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+  flex: 1;
+}
+
+#banner dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+#banner dt {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+#banner dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+#banner kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--bg);
+  font: 500 11px/1.5 var(--mono);
+}
+
+#banner-close {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  font: 500 12px/1 var(--mono);
+  cursor: pointer;
+}
+
+#banner-close:hover { background: var(--bg); color: var(--text); }
+
+/* 배너가 떠 있으면 검색 창을 그 아래로 내린다. */
+#banner:not([hidden]) ~ #search { top: 76px; }
 
 /* --- search panel ------------------------------------------------------ */
 

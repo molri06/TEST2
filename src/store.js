@@ -8,6 +8,7 @@ const KEY = 'canvas-notes/v1';
 export const emptyState = () => ({
   notes: [],
   view: { x: 0, y: 0, scale: 1 },
+  bannerClosed: false,
 });
 
 export function load() {
@@ -20,6 +21,7 @@ export function load() {
       notes: (Array.isArray(parsed.notes) ? parsed.notes : [])
         .map((n) => ({ searchable: true, ...n })),
       view: { ...emptyState().view, ...parsed.view },
+      bannerClosed: parsed.bannerClosed === true,
     };
   } catch {
     // 손상된 데이터로 앱이 아예 안 뜨는 것보다 빈 캔버스가 낫다.
