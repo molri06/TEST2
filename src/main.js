@@ -514,10 +514,7 @@ const statAcc = document.getElementById('stat-acc');
 const statProgress = document.getElementById('stat-progress');
 const statBest = document.getElementById('stat-best');
 const picker = document.getElementById('typing-song');
-const ice = document.getElementById('ice');
-const iceLabel = document.getElementById('ice-label');
-const cube = ice.querySelector('.cube');
-const drops = [...ice.querySelectorAll('.drop')];
+const iceA = makeIce(document.getElementById('ice'));
 
 const MAX_LINES = 8;
 
@@ -647,7 +644,7 @@ function startGame() {
   }
 
   play.total = play.lines.reduce((sum, line) => sum + line.length, 0);
-  freshIce();
+  iceA.fresh();
   sourceLabel.textContent = `${song.note} · ${play.lines.length}줄`;
   resultLine.hidden = true;
   input.disabled = false;
@@ -693,15 +690,6 @@ const WRONG_COST = 0.6;
 
 /** 얼음 윗면을 몇 개의 기둥으로 나눠 각각 다른 속도로 녹인다. */
 const MELT_COLUMNS = 11;
-let meltProfile = [];
-
-/** 판마다 다른 얼음이 되도록 기둥별 속도와 흔들림을 새로 뽑는다. */
-function freshIce() {
-  meltProfile = Array.from({ length: MELT_COLUMNS }, () => ({
-    rate: 0.7 + Math.random() * 0.6,   // 어떤 자리는 빨리, 어떤 자리는 더디게
-    wobble: Math.random() * 2 - 1,     // 녹는 도중 오르내리는 결
-  }));
-}
 
 /**
  * 기둥 하나가 녹은 높이(0~1).
@@ -712,6 +700,62 @@ function columnDepth(m, { rate, wobble }) {
   const spread = (rate - 1) * 2 * m * (1 - m);
   const ripple = wobble * 0.05 * Math.sin(2 * Math.PI * m);
   return Math.min(1, Math.max(0, m + spread + ripple));
+}
+
+/**
+ * 얼음 한 덩이를 맡는다. 두 타자 연습이 같은 장면을 따로 하나씩 쓴다.
+ * fresh()는 판마다 다른 얼음결을 뽑고, show(melt)는 그만큼 깎아 낸다.
+ */
+function makeIce(root) {
+  const cube = root.querySelector('.cube');
+  const label = root.querySelector('.ice-label');
+  const drops = [...root.querySelectorAll('.drop')];
+  let profile = [];
+
+  const fresh = () => {
+    profile = Array.from({ length: MELT_COLUMNS }, () => ({
+      rate: 0.7 + Math.random() * 0.6,   // 어떤 자리는 빨리, 어떤 자리는 더디게
+      wobble: Math.random() * 2 - 1,     // 녹는 도중 오르내리는 결
+    }));
+  };
+
+  /** 녹은 경계를 다각형으로 그리고, 물방울을 그 자리 높이에 매단다. */
+  function shape(melt) {
+    if (!profile.length) fresh();
+
+    const depths = profile.map((column) => columnDepth(melt, column));
+    const points = depths.map((depth, i) => {
+      const x = (i / (MELT_COLUMNS - 1)) * 100;
+      return `${x.toFixed(1)}% ${(depth * 100).toFixed(1)}%`;
+    });
+    cube.style.clipPath = `polygon(${points.join(', ')}, 100% 100%, 0% 100%)`;
+
+    for (const drop of drops) {
+      const at = Number(drop.dataset.at); // 0~1, 물방울이 매달린 가로 위치
+      const slot = at * (MELT_COLUMNS - 1);
+      const low = Math.floor(slot);
+      const high = Math.min(MELT_COLUMNS - 1, low + 1);
+      const depth = depths[low] + (depths[high] - depths[low]) * (slot - low);
+      drop.style.top = `${(depth * 100).toFixed(1)}%`;
+    }
+  }
+
+  return {
+    root,
+    fresh,
+    show(melt) {
+      root.style.setProperty('--melt', melt.toFixed(3));
+      shape(melt);
+      root.dataset.stage = melt >= 0.99 ? 'open'
+        : melt >= 0.5 ? 'melting'
+        : melt >= 0.15 ? 'cracking' : 'frozen';
+      root.classList.toggle('open', melt >= 0.99);
+      label.textContent = melt >= 0.99
+        ? '보물이 드러났습니다'
+        : `얼음 ${Math.round(melt * 100)}% 녹음`;
+      return melt;
+    },
+  };
 }
 
 function meltRatio() {
@@ -727,37 +771,7 @@ function meltRatio() {
 }
 
 function updateMelt() {
-  const melt = meltRatio();
-  ice.style.setProperty('--melt', melt.toFixed(3));
-  shapeIce(melt);
-  ice.dataset.stage = melt >= 0.99 ? 'open' : melt >= 0.5 ? 'melting' : melt >= 0.15 ? 'cracking' : 'frozen';
-  ice.classList.toggle('open', melt >= 0.99);
-
-  iceLabel.textContent = melt >= 0.99
-    ? '보물이 드러났습니다'
-    : `얼음 ${Math.round(melt * 100)}% 녹음`;
-  return melt;
-}
-
-/** 녹은 경계를 다각형으로 그리고, 물방울을 그 자리 높이에 매단다. */
-function shapeIce(melt) {
-  if (!meltProfile.length) freshIce();
-
-  const depths = meltProfile.map((column) => columnDepth(melt, column));
-  const points = depths.map((depth, i) => {
-    const x = (i / (MELT_COLUMNS - 1)) * 100;
-    return `${x.toFixed(1)}% ${(depth * 100).toFixed(1)}%`;
-  });
-  cube.style.clipPath = `polygon(${points.join(', ')}, 100% 100%, 0% 100%)`;
-
-  for (const drop of drops) {
-    const at = Number(drop.dataset.at); // 0~1, 물방울이 매달린 가로 위치
-    const slot = at * (MELT_COLUMNS - 1);
-    const low = Math.floor(slot);
-    const high = Math.min(MELT_COLUMNS - 1, low + 1);
-    const depth = depths[low] + (depths[high] - depths[low]) * (slot - low);
-    drop.style.top = `${(depth * 100).toFixed(1)}%`;
-  }
+  return iceA.show(meltRatio());
 }
 
 function showBest() {
@@ -854,6 +868,291 @@ document.getElementById('typing-close').addEventListener('click', closeTyping);
 document.getElementById('typing-restart').addEventListener('click', startGame);
 game.addEventListener('pointerdown', (e) => {
   if (e.target === game) closeTyping(); // 바깥을 누르면 닫는다
+});
+
+
+/* --- 타자 연습 2 · 떨어지는 낱말 ---------------------------------------- */
+
+/*
+ * 같은 노랫말을 낱말로 쪼개 하늘에서 떨어뜨린다. 자리도 속도도 매번 다르다.
+ * 물에 닿기 전에 그대로 입력하면 낱말이 사라지고 그만큼 얼음이 녹는다.
+ * 놓친 낱말은 다시 얼린다.
+ */
+
+const drop = document.getElementById('drop');
+const sky = document.getElementById('sky');
+const dropInput = document.getElementById('drop-input');
+const dropSource = document.getElementById('drop-source');
+const dropResult = document.getElementById('drop-result');
+const dropPicker = document.getElementById('drop-song');
+const dropCpm = document.getElementById('drop-cpm');
+const dropAcc = document.getElementById('drop-acc');
+const dropLeft = document.getElementById('drop-left');
+const dropBest = document.getElementById('drop-best');
+
+const iceB = makeIce(mountIce(document.getElementById('drop-ice')));
+
+const WORD_COUNT = 18;       // 한 판에 떨어지는 낱말 수
+const SPAWN_MIN = 1100;      // 낱말 사이 간격(ms)
+const SPAWN_MAX = 1900;
+const FALL_MIN = 5.5;        // 하늘 끝에서 물까지 걸리는 시간(초)
+const FALL_MAX = 9.5;
+
+let fall = null; // { words, queue, spawned, correct, missed, total, startedAt, raf, next }
+let lastFrame = 0;
+
+/**
+ * 얼음 장면은 SVG가 길어 두 번 적기 아깝다. 첫 번째 창의 것을 복제하되
+ * 안쪽 id는 겹치지 않게 바꾼다(그러지 않으면 그러데이션을 서로 뺏는다).
+ */
+function mountIce(host) {
+  const copy = document.getElementById('ice').cloneNode(true);
+  copy.removeAttribute('id');
+
+  const renamed = new Map();
+  for (const el of copy.querySelectorAll('[id]')) {
+    renamed.set(el.id, `${el.id}-b`);
+    el.id = `${el.id}-b`;
+  }
+  for (const el of copy.querySelectorAll('[fill], [stroke]')) {
+    for (const attr of ['fill', 'stroke']) {
+      const value = el.getAttribute(attr);
+      const key = value?.startsWith('url(#') ? value.slice(5, -1) : null;
+      if (key && renamed.has(key)) el.setAttribute(attr, `url(#${renamed.get(key)})`);
+    }
+  }
+
+  host.replaceWith(copy);
+  return copy;
+}
+
+/** 노랫말을 낱말로 쪼개 섞는다. */
+function wordsOf(song) {
+  const lines = song.lines ?? collectNoteLines();
+  const words = lines.flatMap((line) => line.split(/\s+/)).filter((w) => w.length > 0);
+
+  for (let i = words.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [words[i], words[j]] = [words[j], words[i]];
+  }
+  return words;
+}
+
+function openDrop() {
+  drop.hidden = false;
+  startFall();
+}
+
+function closeDrop() {
+  stopFall();
+  fall = null;
+  drop.hidden = true;
+}
+
+function stopFall() {
+  if (!fall) return;
+  cancelAnimationFrame(fall.raf);
+  clearTimeout(fall.next);
+  fall.raf = 0;
+  fall.next = 0;
+}
+
+function startFall() {
+  const song = songOf(dropPicker.value);
+  const queue = wordsOf(song).slice(0, WORD_COUNT);
+
+  stopFall();
+  sky.querySelectorAll('.word').forEach((el) => el.remove());
+
+  if (!queue.length) {
+    dropSource.textContent = '노트에 적어 둔 문장이 없어 애국가로 바꿉니다';
+    dropPicker.value = 'anthem';
+    startFall();
+    return;
+  }
+
+  fall = {
+    words: [],                                  // 지금 떨어지는 중인 낱말
+    queue,
+    spawned: 0,
+    correct: 0,
+    missed: 0,
+    total: queue.reduce((sum, w) => sum + w.length, 0),
+    startedAt: Date.now(),
+    raf: 0,
+    next: 0,
+  };
+
+  iceB.fresh();
+  lastFrame = 0;
+  dropSource.textContent = `${song.note} · 낱말 ${queue.length}개`;
+  dropResult.hidden = true;
+  dropInput.disabled = false;
+  dropInput.value = '';
+  dropInput.focus();
+
+  showDropBest();
+  updateDropStats();
+  iceB.show(0);
+  spawnNext();
+  fall.raf = requestAnimationFrame(stepFall);
+}
+
+function spawnNext() {
+  if (!fall || fall.spawned >= fall.queue.length) return;
+
+  const text = fall.queue[fall.spawned];
+  fall.spawned += 1;
+
+  const el = document.createElement('span');
+  el.className = 'word';
+  el.textContent = text;
+  sky.append(el);
+
+  // 가로 자리는 낱말 폭을 뺀 범위 안에서 무작위로 고른다.
+  const margin = (el.offsetWidth / 2 / sky.clientWidth) * 100 + 2;
+  const left = margin + Math.random() * Math.max(0, 100 - margin * 2);
+  el.style.left = `${left.toFixed(1)}%`;
+  el.style.top = '0px';
+
+  const reach = Math.max(20, sky.clientHeight - el.offsetHeight - 10);
+  fall.words.push({
+    text,
+    el,
+    y: 0,
+    speed: reach / (FALL_MIN + Math.random() * (FALL_MAX - FALL_MIN)), // px/초
+    reach,
+  });
+
+  fall.next = setTimeout(spawnNext, SPAWN_MIN + Math.random() * (SPAWN_MAX - SPAWN_MIN));
+}
+
+function stepFall(now) {
+  if (!fall) return;
+  const dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0;
+  lastFrame = now;
+
+  for (const word of [...fall.words]) {
+    word.y += word.speed * dt;
+    word.el.style.top = `${word.y.toFixed(1)}px`;
+    if (word.y >= word.reach) sinkWord(word);
+  }
+
+  updateDropStats();
+  if (fall.spawned >= fall.queue.length && !fall.words.length) finishFall();
+  else fall.raf = requestAnimationFrame(stepFall);
+}
+
+/** 물에 닿은 낱말. 그만큼 다시 언다. */
+function sinkWord(word) {
+  fall.missed += word.text.length;
+  removeWord(word, 'lost');
+  meltFall();
+}
+
+function removeWord(word, how) {
+  fall.words = fall.words.filter((w) => w !== word);
+  word.el.classList.add(how);
+  word.el.addEventListener('animationend', () => word.el.remove());
+  setTimeout(() => word.el.remove(), 400); // 애니메이션을 끈 환경까지 챙긴다
+}
+
+function meltFall() {
+  const gained = fall.correct;
+  const lost = fall.missed * WRONG_COST;
+  const melt = fall.total ? Math.min(1, Math.max(0, (gained - lost) / fall.total)) : 0;
+  return iceB.show(melt);
+}
+
+function updateDropStats() {
+  const minutes = (Date.now() - fall.startedAt) / 60000;
+  dropCpm.textContent = minutes > 0 ? Math.round(fall.correct / minutes) : 0;
+
+  const attempts = fall.correct + fall.missed;
+  dropAcc.textContent = attempts ? `${Math.round((fall.correct / attempts) * 100)}%` : '100%';
+  dropLeft.textContent = `${fall.queue.length - fall.spawned + fall.words.length}`;
+}
+
+function showDropBest() {
+  const best = state.dropBest;
+  dropBest.textContent = best.cpm ? `${best.cpm}타 · ${best.accuracy}%` : '—';
+}
+
+function finishFall() {
+  stopFall();
+  dropInput.disabled = true;
+
+  const minutes = (Date.now() - fall.startedAt) / 60000;
+  const cpm = minutes > 0 ? Math.round(fall.correct / minutes) : 0;
+  const attempts = fall.correct + fall.missed;
+  const accuracy = attempts ? Math.round((fall.correct / attempts) * 100) : 100;
+  const record = cpm > state.dropBest.cpm;
+  if (record) {
+    state.dropBest = { cpm, accuracy };
+    save(state);
+    showDropBest();
+  }
+
+  const melt = meltFall();
+  dropResult.textContent = `낱말 ${fall.queue.length}개 중 놓친 글자 ${fall.missed}자. `
+    + `분당 ${cpm}타, 정확도 ${accuracy}%. `
+    + (melt >= 0.99
+        ? '얼음이 다 녹아 보물을 찾았습니다.'
+        : `얼음이 ${Math.round(melt * 100)}%까지 녹았습니다. 더 많이 받아 내면 보물이 나옵니다.`)
+    + (record ? ' 최고 기록입니다.' : '');
+  dropResult.hidden = false;
+  dropCpm.textContent = cpm;
+  dropAcc.textContent = `${accuracy}%`;
+}
+
+/** 입력과 앞이 맞는 낱말을 짚어 주고, 똑같아지면 받아 낸다. */
+dropInput.addEventListener('input', () => {
+  if (!fall || dropInput.disabled) return;
+  const typed = dropInput.value.trim();
+
+  const hit = fall.words.find((w) => w.text === typed);
+  if (hit) {
+    fall.correct += hit.text.length;
+    removeWord(hit, 'hit');
+    dropInput.value = '';
+    meltFall();
+    updateDropStats();
+    return;
+  }
+
+  // 가장 아래(가장 급한) 낱말부터 짚는다.
+  const aiming = typed
+    ? [...fall.words].sort((a, b) => b.y - a.y).find((w) => w.text.startsWith(typed))
+    : null;
+  for (const word of fall.words) word.el.classList.toggle('aim', word === aiming);
+});
+
+dropInput.addEventListener('paste', (e) => e.preventDefault());
+
+dropInput.addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  if (e.key === 'Escape') closeDrop();
+});
+
+for (const song of SONGS) {
+  const option = document.createElement('option');
+  option.value = song.key;
+  option.textContent = song.title;
+  dropPicker.append(option);
+}
+dropPicker.value = songOf(state.dropSong).key;
+
+dropPicker.addEventListener('change', () => {
+  state.dropSong = dropPicker.value;
+  save(state);
+  startFall();
+});
+
+document.getElementById('drop-open').addEventListener('click', openDrop);
+document.getElementById('drop-close').addEventListener('click', closeDrop);
+document.getElementById('drop-restart').addEventListener('click', startFall);
+drop.addEventListener('pointerdown', (e) => {
+  if (e.target === drop) closeDrop(); // 바깥을 누르면 닫는다
 });
 
 /* --- 시작 ------------------------------------------------------------- */

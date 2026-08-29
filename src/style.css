@@ -464,7 +464,7 @@ body {
  *   크림 #fbf6d0 · 살구 #fddcc2 · 산호 #fbb3ab · 청록 #58a8a3
  *   하늘 #acd3e2 · 라벤더 #cccadf
  */
-#typing {
+.tdlg {
   --t-wash: rgba(88, 168, 163, .3);
   --t-card: #fffdf4;
   --t-border: #fddcc2;
@@ -480,7 +480,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) #typing {
+  :root:not([data-theme="light"]) .tdlg {
     --t-wash: rgba(12, 24, 26, .58);
     --t-card: #23302f;
     --t-border: #3a5450;
@@ -496,7 +496,7 @@ body {
   }
 }
 
-:root[data-theme="dark"] #typing {
+:root[data-theme="dark"] .tdlg {
   --t-wash: rgba(12, 24, 26, .58);
   --t-card: #23302f;
   --t-border: #3a5450;
@@ -511,9 +511,9 @@ body {
   --t-result-edge: #4a4a63;
 }
 
-#typing[hidden] { display: none; }
+.tdlg[hidden] { display: none; }
 
-#typing {
+.tdlg {
   position: fixed;
   inset: 0;
   z-index: 10;
@@ -525,7 +525,7 @@ body {
   color: var(--t-ink);
 }
 
-#typing .game {
+.tdlg .game {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -535,16 +535,18 @@ body {
   border-radius: 12px;
   background: var(--t-card);
   box-shadow: 0 2px 4px rgba(44, 59, 62, .08), 0 16px 40px rgba(44, 59, 62, .16);
+  max-height: 100%;
+  overflow: auto;
 }
 
-#typing header {
+.tdlg header {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: baseline;
   gap: 2px 8px;
 }
 
-#typing h2 {
+.tdlg h2 {
   margin: 0;
   color: var(--t-accent);
   font-size: 16px;
@@ -552,14 +554,14 @@ body {
   letter-spacing: .01em;
 }
 
-#typing-source {
+.t-source {
   grid-column: 1;
   margin: 0;
   color: var(--t-muted);
   font-size: 12px;
 }
 
-#typing-close {
+.t-close {
   grid-row: 1 / span 2;
   grid-column: 2;
   width: 28px;
@@ -572,21 +574,21 @@ body {
   cursor: pointer;
 }
 
-#typing-close:hover { background: var(--t-field); color: var(--t-ink); }
+.t-close:hover { background: var(--t-field); color: var(--t-ink); }
 
-#typing-pick {
+.t-pick {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: -4px;
 }
 
-#typing-pick span {
+.t-pick span {
   color: var(--t-muted);
   font-size: 12px;
 }
 
-#typing-song {
+.t-select {
   flex: 1;
   padding: 7px 9px;
   border: 1px solid var(--t-border);
@@ -617,7 +619,7 @@ body {
   box-shadow: 0 2px 0 var(--t-accent);
 }
 
-#typing-input {
+.t-input {
   padding: 11px 13px;
   border: 1px solid var(--t-result-edge);
   border-radius: 8px;
@@ -626,11 +628,11 @@ body {
   font: 400 16px/1.5 var(--sans);
 }
 
-#typing-input::placeholder { color: var(--t-muted); }
-#typing-input:focus { outline: 2px solid var(--t-accent); outline-offset: -1px; }
-#typing-input:disabled { background: var(--t-field); color: var(--t-muted); }
+.t-input::placeholder { color: var(--t-muted); }
+.t-input:focus { outline: 2px solid var(--t-accent); outline-offset: -1px; }
+.t-input:disabled { background: var(--t-field); color: var(--t-muted); }
 
-#typing-stats {
+.t-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
@@ -639,20 +641,20 @@ body {
   border-top: 1px solid var(--t-border);
 }
 
-#typing-stats dt {
+.t-stats dt {
   color: var(--t-muted);
   font-size: 11px;
   letter-spacing: .02em;
 }
 
-#typing-stats dd {
+.t-stats dd {
   margin: 2px 0 0;
   color: var(--t-accent);
   font: 500 17px/1.2 var(--mono);
   font-variant-numeric: tabular-nums;
 }
 
-#typing-result {
+.t-result {
   margin: 0;
   padding: 12px 14px;
   border: 1px solid var(--t-result-edge);
@@ -662,9 +664,9 @@ body {
   font-size: 13px;
 }
 
-#typing-result[hidden] { display: none; }
+.t-result[hidden] { display: none; }
 
-#typing-restart {
+.t-restart {
   align-self: flex-start;
   padding: 8px 15px;
   border: 1px solid var(--t-accent);
@@ -675,10 +677,10 @@ body {
   cursor: pointer;
 }
 
-#typing-restart:hover { background: var(--t-field); }
-#typing-restart:focus-visible,
-#typing-song:focus-visible,
-#typing-close:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
+.t-restart:hover { background: var(--t-field); }
+.t-restart:focus-visible,
+.t-select:focus-visible,
+.t-close:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 1px; }
 
 /* --- 얼음과 보물 -------------------------------------------------------- */
 
@@ -686,7 +688,7 @@ body {
  * --melt(0~1)이 커질수록 얼음덩어리가 위에서부터 깎여 내려간다.
  * 값은 정확히 친 글자 수에서 틀린 자리를 뺀 만큼 JS가 올린다.
  */
-#ice {
+.ice {
   position: relative;
   height: 168px;
   border: 1px solid var(--t-border);
@@ -697,7 +699,7 @@ body {
   overflow: hidden;
 }
 
-#ice .chest {
+.ice .chest {
   position: absolute;
   inset: 0;
   display: flex;
@@ -710,13 +712,13 @@ body {
   transition: transform .35s ease-out;
 }
 
-#ice .chest svg {
+.ice .chest svg {
   width: 96px;
   height: auto;
   filter: drop-shadow(0 4px 10px rgba(44, 59, 62, .22));
 }
 
-#ice .sparkle {
+.ice .sparkle {
   position: absolute;
   color: #f3c96b;
   font-size: 15px;
@@ -725,13 +727,13 @@ body {
   text-shadow: 0 0 8px rgba(243, 201, 107, .8);
 }
 
-#ice .s1 { top: 14%; left: 27%; }
-#ice .s2 { top: 20%; right: 26%; font-size: 12px; }
-#ice .s3 { top: 32%; left: 46%; font-size: 11px; }
+.ice .s1 { top: 14%; left: 27%; }
+.ice .s2 { top: 20%; right: 26%; font-size: 12px; }
+.ice .s3 { top: 32%; left: 46%; font-size: 11px; }
 
-#ice.open .sparkle { opacity: 1; animation: twinkle 1.6s ease-in-out infinite; }
-#ice.open .s2 { animation-delay: .35s; }
-#ice.open .s3 { animation-delay: .7s; }
+.ice.open .sparkle { opacity: 1; animation: twinkle 1.6s ease-in-out infinite; }
+.ice.open .s2 { animation-delay: .35s; }
+.ice.open .s3 { animation-delay: .7s; }
 
 @keyframes twinkle {
   0%, 100% { opacity: .3; transform: scale(.85); }
@@ -739,7 +741,7 @@ body {
 }
 
 /* 갇힌 보물에서 새어 나오는 빛. 얼음 안에 있으므로 얼음이 녹은 만큼 같이 사라진다. */
-#ice .aura {
+.ice .aura {
   position: absolute;
   inset: 0;
   /* 정육면체 실루엣 밖으로 빛이 새지 않도록 같은 육각형으로 자른다. */
@@ -751,7 +753,7 @@ body {
 }
 
 /* 얼음과 상자가 함께 놓인 바닥. */
-#ice .ground {
+.ice .ground {
   position: absolute;
   left: 50%;
   bottom: 20px;
@@ -763,7 +765,7 @@ body {
 }
 
 /* 얼음덩어리가 놓인 자리. 녹는 경계선과 물방울이 이 상자를 기준으로 움직인다. */
-#ice .block {
+.ice .block {
   position: absolute;
   top: 12px;
   left: 50%;
@@ -773,7 +775,7 @@ body {
 }
 
 /* 잘려 나간 윤곽을 따라 젖은 테두리가 빛나도록 얼음 위에 한 겹 씌운다. */
-#ice .cube-glow {
+.ice .cube-glow {
   position: absolute;
   inset: 0;
   filter: drop-shadow(0 -1.5px 0 rgba(255, 255, 255, .75))
@@ -784,7 +786,7 @@ body {
  * 덩어리 자체. 위에서부터 잘려 나가되, 자리마다 녹는 속도가 달라
  * 경계가 들쭉날쭉해진다. 실제 clip-path 다각형은 JS가 매번 계산한다.
  */
-#ice .cube {
+.ice .cube {
   position: absolute;
   inset: 0;
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
@@ -792,7 +794,7 @@ body {
   transition: clip-path .35s ease-out, opacity .35s;
 }
 
-#ice .cube svg {
+.ice .cube svg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -800,7 +802,7 @@ body {
 }
 
 /* 얼음 너머가 굴절돼 보이도록 뒤를 흐린다. 육각형은 정육면체의 실루엣. */
-#ice .glass {
+.ice .glass {
   position: absolute;
   inset: 0;
   clip-path: polygon(50% 7%, 94% 30%, 94% 70%, 50% 93%, 6% 70%, 6% 30%);
@@ -809,7 +811,7 @@ body {
 }
 
 /* 녹아 내린 물이 얼음 윗면에서 떨어진다. */
-#ice .drop {
+.ice .drop {
   position: absolute;
   top: 0; /* JS가 그 자리의 녹은 높이에 맞춰 옮긴다 */
   width: 5px;
@@ -820,14 +822,14 @@ body {
   transform: rotate(45deg);
 }
 
-#ice .d1 { left: 26%; }
-#ice .d2 { left: 52%; }
-#ice .d3 { left: 74%; }
+.ice .d1 { left: 26%; }
+.ice .d2 { left: 52%; }
+.ice .d3 { left: 74%; }
 
-#ice[data-stage="cracking"] .drop,
-#ice[data-stage="melting"] .drop { animation: drip 1.5s ease-in infinite; }
-#ice .d2 { animation-delay: .5s; }
-#ice .d3 { animation-delay: 1s; }
+.ice[data-stage="cracking"] .drop,
+.ice[data-stage="melting"] .drop { animation: drip 1.5s ease-in infinite; }
+.ice .d2 { animation-delay: .5s; }
+.ice .d3 { animation-delay: 1s; }
 
 @keyframes drip {
   0% { opacity: 0; transform: translateY(-4px) rotate(45deg) scale(.7); }
@@ -836,7 +838,7 @@ body {
 }
 
 /* 녹은 물이 고이는 자리. */
-#ice .puddle {
+.ice .puddle {
   position: absolute;
   left: 50%;
   bottom: 18px;
@@ -849,7 +851,7 @@ body {
   transition: width .35s ease-out, margin-left .35s ease-out, opacity .35s;
 }
 
-#ice-label {
+.ice-label {
   position: absolute;
   left: 0;
   right: 0;
@@ -860,10 +862,84 @@ body {
   text-align: center;
 }
 
-#ice.open #ice-label { color: var(--t-accent); font-weight: 500; }
+.ice.open .ice-label { color: var(--t-accent); font-weight: 500; }
 
 @media (prefers-reduced-motion: reduce) {
-  #ice .chest, #ice .cube, #ice .puddle { transition: none; }
-  #ice .drop, #ice.open .sparkle { animation: none; }
-  #ice.open .sparkle { opacity: 1; }
+  .ice .chest, .ice .cube, .ice .puddle { transition: none; }
+  .ice .drop, .ice.open .sparkle { animation: none; }
+  .ice.open .sparkle { opacity: 1; }
+}
+
+/* --- 타자 연습 2 · 떨어지는 낱말 ---------------------------------------- */
+
+/*
+ * 낱말이 하늘에서 무작위 자리·무작위 속도로 내려온다. 물에 닿기 전에
+ * 그대로 입력하면 사라지고 얼음이 그만큼 녹는다. 놓치면 다시 언다.
+ */
+#sky {
+  position: relative;
+  height: 176px;
+  border: 1px solid var(--t-border);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--t-now) 40%, var(--t-card)), var(--t-card) 66%),
+    var(--t-card);
+  overflow: hidden;
+}
+
+#sky .waterline {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 18px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--t-now) 55%, transparent));
+  border-top: 1px dashed color-mix(in srgb, var(--t-bad) 60%, transparent);
+}
+
+#sky .word {
+  position: absolute;
+  top: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--t-border);
+  border-radius: 999px;
+  background: var(--t-card);
+  box-shadow: 0 1px 2px rgba(44, 59, 62, .12);
+  color: var(--t-ink);
+  font: 400 15px/1.2 var(--mono);
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* 지금 입력 중인 글자와 앞이 맞아떨어지는 낱말 */
+#sky .word.aim {
+  border-color: var(--t-accent);
+  background: color-mix(in srgb, var(--t-now) 45%, var(--t-card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--t-accent) 22%, transparent);
+}
+
+#sky .word.hit {
+  border-color: var(--t-accent);
+  color: var(--t-accent);
+  animation: pop .28s ease-out forwards;
+}
+
+#sky .word.lost {
+  border-color: var(--t-bad);
+  color: var(--t-bad);
+  animation: sink .32s ease-in forwards;
+}
+
+@keyframes pop {
+  to { transform: translateX(-50%) scale(1.35); opacity: 0; }
+}
+
+@keyframes sink {
+  to { transform: translateX(-50%) translateY(10px); opacity: 0; }
+}
+
+#drop .ice { height: 132px; }
+
+@media (prefers-reduced-motion: reduce) {
+  #sky .word.hit, #sky .word.lost { animation: none; opacity: 0; }
 }

@@ -29,6 +29,7 @@
     <span id="zoom">100%</span>
     <button id="help" type="button">사용법</button>
     <button id="typing-open" type="button">타자 연습</button>
+    <button id="drop-open" type="button">타자 연습 2</button>
     <button id="search-open" type="button">검색</button>
     <button id="reset" type="button">화면 맞추기</button>
   </div>
@@ -42,20 +43,20 @@
     <ul id="results"></ul>
   </div>
 
-  <div id="typing" hidden>
+  <div id="typing" class="tdlg" hidden>
     <section class="game" role="dialog" aria-modal="true" aria-labelledby="typing-title">
       <header>
         <h2 id="typing-title">타자 연습</h2>
-        <p id="typing-source"></p>
-        <button id="typing-close" type="button" title="닫기 (Esc)">✕</button>
+        <p id="typing-source" class="t-source"></p>
+        <button id="typing-close" class="t-close" type="button" title="닫기 (Esc)">✕</button>
       </header>
 
-      <label id="typing-pick">
+      <label class="t-pick">
         <span>연습할 노랫말</span>
-        <select id="typing-song"></select>
+        <select id="typing-song" class="t-select"></select>
       </label>
 
-      <div id="ice" style="--melt: 0">
+      <div id="ice" class="ice" style="--melt: 0">
         <div class="chest">
           <svg viewBox="0 0 150 122" aria-hidden="true">
             <defs>
@@ -197,22 +198,56 @@
 
         <span class="ground"></span>
         <span class="puddle"></span>
-        <p id="ice-label">얼음 속에 무언가 있습니다</p>
+        <p class="ice-label">얼음 속에 무언가 있습니다</p>
       </div>
 
       <p id="typing-target" class="target" aria-live="polite"></p>
-      <input id="typing-input" type="text" autocomplete="off" autocapitalize="off"
+      <input id="typing-input" class="t-input" type="text" autocomplete="off" autocapitalize="off"
              spellcheck="false" placeholder="위 문장을 그대로 입력하세요">
 
-      <dl id="typing-stats">
+      <dl class="t-stats">
         <div><dt>타수</dt><dd id="stat-cpm">0</dd></div>
         <div><dt>정확도</dt><dd id="stat-acc">100%</dd></div>
         <div><dt>진행</dt><dd id="stat-progress">0 / 0</dd></div>
         <div><dt>최고 기록</dt><dd id="stat-best">—</dd></div>
       </dl>
 
-      <p id="typing-result" hidden></p>
-      <button id="typing-restart" type="button">다시 시작</button>
+      <p id="typing-result" class="t-result" hidden></p>
+      <button id="typing-restart" class="t-restart" type="button">다시 시작</button>
+    </section>
+  </div>
+
+  <div id="drop" class="tdlg" hidden>
+    <section class="game" role="dialog" aria-modal="true" aria-labelledby="drop-title">
+      <header>
+        <h2 id="drop-title">타자 연습 2 · 떨어지는 낱말</h2>
+        <p id="drop-source" class="t-source"></p>
+        <button id="drop-close" class="t-close" type="button" title="닫기 (Esc)">✕</button>
+      </header>
+
+      <label class="t-pick">
+        <span>낱말을 가져올 노랫말</span>
+        <select id="drop-song" class="t-select"></select>
+      </label>
+
+      <div id="drop-ice"></div>
+
+      <div id="sky">
+        <span class="waterline"></span>
+      </div>
+
+      <input id="drop-input" class="t-input" type="text" autocomplete="off" autocapitalize="off"
+             spellcheck="false" placeholder="떨어지는 낱말을 입력하세요">
+
+      <dl class="t-stats">
+        <div><dt>타수</dt><dd id="drop-cpm">0</dd></div>
+        <div><dt>정확도</dt><dd id="drop-acc">100%</dd></div>
+        <div><dt>남은 낱말</dt><dd id="drop-left">0</dd></div>
+        <div><dt>최고 기록</dt><dd id="drop-best">—</dd></div>
+      </dl>
+
+      <p id="drop-result" class="t-result" hidden></p>
+      <button id="drop-restart" class="t-restart" type="button">다시 시작</button>
     </section>
   </div>
 

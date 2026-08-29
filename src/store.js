@@ -11,6 +11,8 @@ export const emptyState = () => ({
   bannerClosed: false,
   typingBest: { cpm: 0, accuracy: 0 },
   typingSong: 'anthem',
+  dropBest: { cpm: 0, accuracy: 0 },
+  dropSong: 'anthem',
 });
 
 export function load() {
@@ -27,6 +29,8 @@ export function load() {
       bannerClosed: parsed.bannerClosed === true,
       typingBest: { ...emptyState().typingBest, ...parsed.typingBest },
       typingSong: parsed.typingSong ?? 'anthem',
+      dropBest: { ...emptyState().dropBest, ...parsed.dropBest },
+      dropSong: parsed.dropSong ?? 'anthem',
     };
   } catch {
     // 손상된 데이터로 앱이 아예 안 뜨는 것보다 빈 캔버스가 낫다.
