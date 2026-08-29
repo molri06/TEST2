@@ -733,19 +733,33 @@ body {
   50% { opacity: 1; transform: scale(1.15); }
 }
 
-/* 얼음층. 아래에서부터 녹아 위로 물러난다. */
+/*
+ * 얼음층. 위에서부터 녹아 아래로 물러난다.
+ * clip-path로 윗부분을 깎아 내므로 안에 그린 균열이 찌그러지지 않는다.
+ */
 #ice .frost {
   position: absolute;
   inset: 0;
-  transform-origin: top;
-  transform: scaleY(calc(1 - var(--melt)));
+  clip-path: inset(calc(var(--melt) * 100%) 0 0 0);
   background:
     linear-gradient(160deg, rgba(255, 255, 255, .82), rgba(172, 211, 226, .72) 55%, rgba(88, 168, 163, .5)),
     var(--t-now);
   backdrop-filter: blur(calc((1 - var(--melt)) * 5px));
-  border-bottom: 2px solid rgba(255, 255, 255, .75);
-  transition: transform .35s ease-out, opacity .35s;
+  transition: clip-path .35s ease-out, opacity .35s;
   opacity: calc(.35 + (1 - var(--melt)) * .65);
+}
+
+/* 녹아 내려가는 얼음의 윗면. */
+#ice .edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--melt) * 100%);
+  height: 2px;
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, .5), rgba(255, 255, 255, .95) 40%, rgba(255, 255, 255, .55));
+  opacity: calc(1 - var(--melt));
+  transition: top .35s ease-out, opacity .35s;
 }
 
 #ice .crack {
@@ -765,10 +779,10 @@ body {
 #ice[data-stage="melting"] .c2,
 #ice[data-stage="melting"] .c3 { opacity: .9; }
 
-/* 녹으면서 떨어지는 물방울. */
+/* 녹아 내린 물이 얼음 윗면에서 떨어진다. */
 #ice .drop {
   position: absolute;
-  bottom: -6px;
+  top: calc(var(--melt) * 100%);
   width: 5px;
   height: 7px;
   border-radius: 0 60% 60% 60%;
@@ -787,9 +801,9 @@ body {
 #ice .d3 { animation-delay: 1s; }
 
 @keyframes drip {
-  0% { opacity: 0; transform: translateY(0) rotate(45deg) scale(.7); }
+  0% { opacity: 0; transform: translateY(-4px) rotate(45deg) scale(.7); }
   25% { opacity: .95; }
-  100% { opacity: 0; transform: translateY(26px) rotate(45deg) scale(1); }
+  100% { opacity: 0; transform: translateY(24px) rotate(45deg) scale(1); }
 }
 
 #ice-label {
