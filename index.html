@@ -28,6 +28,7 @@
   <div id="bar">
     <span id="zoom">100%</span>
     <button id="help" type="button">사용법</button>
+    <button id="typing-open" type="button">타자 연습</button>
     <button id="search-open" type="button">검색</button>
     <button id="reset" type="button">화면 맞추기</button>
   </div>
@@ -39,6 +40,30 @@
     </div>
     <p id="search-status"></p>
     <ul id="results"></ul>
+  </div>
+
+  <div id="typing" hidden>
+    <section class="game" role="dialog" aria-modal="true" aria-labelledby="typing-title">
+      <header>
+        <h2 id="typing-title">타자 연습</h2>
+        <p id="typing-source"></p>
+        <button id="typing-close" type="button" title="닫기 (Esc)">✕</button>
+      </header>
+
+      <p id="typing-target" class="target" aria-live="polite"></p>
+      <input id="typing-input" type="text" autocomplete="off" autocapitalize="off"
+             spellcheck="false" placeholder="위 문장을 그대로 입력하세요">
+
+      <dl id="typing-stats">
+        <div><dt>타수</dt><dd id="stat-cpm">0</dd></div>
+        <div><dt>정확도</dt><dd id="stat-acc">100%</dd></div>
+        <div><dt>진행</dt><dd id="stat-progress">0 / 0</dd></div>
+        <div><dt>최고 기록</dt><dd id="stat-best">—</dd></div>
+      </dl>
+
+      <p id="typing-result" hidden></p>
+      <button id="typing-restart" type="button">다시 시작</button>
+    </section>
   </div>
 
   <script type="module" src="src/main.js"></script>

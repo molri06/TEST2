@@ -455,3 +455,138 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #hint { transition: none; }
 }
+
+/* --- 타자 연습 ---------------------------------------------------------- */
+
+#typing[hidden] { display: none; }
+
+#typing {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(24, 24, 22, .32);
+}
+
+#typing .game {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(620px, 100%);
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+#typing header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+#typing h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+#typing-source {
+  grid-column: 1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#typing-close {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  font: 500 12px/1 var(--mono);
+  cursor: pointer;
+}
+
+#typing-close:hover { background: var(--bg); color: var(--text); }
+
+.target {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  font-size: 18px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.target .ok { color: var(--muted); }
+.target .bad { color: var(--danger); text-decoration: underline wavy var(--danger); }
+.target .now { border-radius: 2px; background: var(--accent-soft); box-shadow: 0 1px 0 var(--accent); }
+
+#typing-input {
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 16px/1.5 var(--sans);
+}
+
+#typing-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+#typing-input:disabled { color: var(--muted); }
+
+#typing-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+#typing-stats dt {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .02em;
+}
+
+#typing-stats dd {
+  margin: 2px 0 0;
+  font: 500 17px/1.2 var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+#typing-result {
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+
+#typing-result[hidden] { display: none; }
+
+#typing-restart {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: 400 13px/1 var(--sans);
+  cursor: pointer;
+}
+
+#typing-restart:hover { background: var(--bg); }

@@ -316,6 +316,7 @@ document.addEventListener('keydown', (e) => {
     removeNote(noteOf(selected));
   } else if (e.key === 'Escape') {
     if (!panel.hidden) closeSearch();
+    if (!game.hidden) closeTyping();
     closeCard();
     document.activeElement?.blur();
     selectNote(null); // 빈 노트는 여기서 정리된다
@@ -499,6 +500,191 @@ query.addEventListener('keydown', (e) => {
   e.stopPropagation();
   if (e.key === 'Escape') closeSearch();
   if (e.key === 'Enter') results.querySelector('button')?.click();
+});
+
+/* --- 타자 연습 ---------------------------------------------------------- */
+
+const game = document.getElementById('typing');
+const target = document.getElementById('typing-target');
+const input = document.getElementById('typing-input');
+const sourceLabel = document.getElementById('typing-source');
+const resultLine = document.getElementById('typing-result');
+const statCpm = document.getElementById('stat-cpm');
+const statAcc = document.getElementById('stat-acc');
+const statProgress = document.getElementById('stat-progress');
+const statBest = document.getElementById('stat-best');
+
+const MAX_LINES = 8;
+
+/** 노트가 하나도 없을 때 쓰는 기본 문장. */
+const SAMPLE_LINES = [
+  '생각은 흩어져 있을 때 가장 자유롭다.',
+  '떠오른 것을 먼저 적고 정리는 나중에 한다.',
+  '캔버스는 넓고 노트는 가볍다.',
+];
+
+let play = null; // { lines, at, wrong, correct, missed, startedAt, timer }
+
+/** 연습할 문장을 내 노트에서 뽑는다. 짧은 조각과 중복은 버린다. */
+function collectLines() {
+  const seen = new Set();
+  const lines = [];
+
+  for (const note of state.notes) {
+    if (note.src) continue;
+    for (const raw of note.text.split('\n')) {
+      const line = raw.trim();
+      if (line.length < 2 || seen.has(line)) continue;
+      seen.add(line);
+      lines.push(line);
+    }
+  }
+
+  for (let i = lines.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [lines[i], lines[j]] = [lines[j], lines[i]];
+  }
+  return { lines: lines.slice(0, MAX_LINES), fromNotes: lines.length > 0 };
+}
+
+function openTyping() {
+  game.hidden = false;
+  startGame();
+}
+
+function closeTyping() {
+  clearInterval(play?.timer);
+  play = null;
+  game.hidden = true;
+}
+
+function startGame() {
+  const { lines, fromNotes } = collectLines();
+  clearInterval(play?.timer);
+  play = {
+    lines: fromNotes ? lines : SAMPLE_LINES.slice(),
+    at: 0,
+    wrong: new Set(),
+    correct: 0,
+    missed: 0,
+    startedAt: null,
+    timer: null,
+  };
+
+  sourceLabel.textContent = fromNotes
+    ? `내 노트 ${play.lines.length}줄로 연습합니다`
+    : '노트가 아직 없어 기본 문장으로 연습합니다';
+  resultLine.hidden = true;
+  input.disabled = false;
+  input.value = '';
+  input.focus();
+
+  showBest();
+  renderLine();
+  updateStats();
+}
+
+function renderLine() {
+  const line = play.lines[play.at] ?? '';
+  const typed = input.value;
+  target.replaceChildren();
+
+  for (let i = 0; i < line.length; i++) {
+    const span = document.createElement('span');
+    span.textContent = line[i];
+    if (i < typed.length) span.className = typed[i] === line[i] ? 'ok' : 'bad';
+    else if (i === typed.length) span.className = 'now';
+    target.append(span);
+  }
+  statProgress.textContent = `${Math.min(play.at + 1, play.lines.length)} / ${play.lines.length}`;
+}
+
+function elapsedMinutes() {
+  return play.startedAt ? (Date.now() - play.startedAt) / 60000 : 0;
+}
+
+function updateStats() {
+  const minutes = elapsedMinutes();
+  const typedSoFar = play.correct + [...input.value].filter((c, i) => c === play.lines[play.at]?.[i]).length;
+  statCpm.textContent = minutes > 0 ? Math.round(typedSoFar / minutes) : 0;
+
+  const attempts = play.correct + play.missed;
+  statAcc.textContent = attempts ? `${Math.round((play.correct / attempts) * 100)}%` : '100%';
+}
+
+function showBest() {
+  const best = state.typingBest;
+  statBest.textContent = best.cpm ? `${best.cpm}타 · ${best.accuracy}%` : '—';
+}
+
+function finishGame() {
+  clearInterval(play.timer);
+  input.disabled = true;
+
+  const minutes = elapsedMinutes();
+  const cpm = minutes > 0 ? Math.round(play.correct / minutes) : 0;
+  const attempts = play.correct + play.missed;
+  const accuracy = attempts ? Math.round((play.correct / attempts) * 100) : 100;
+  const seconds = Math.max(1, Math.round(minutes * 60));
+
+  const record = cpm > state.typingBest.cpm;
+  if (record) {
+    state.typingBest = { cpm, accuracy };
+    save(state);
+    showBest();
+  }
+
+  resultLine.textContent = `${play.lines.length}줄을 ${seconds}초에 마쳤습니다. `
+    + `분당 ${cpm}타, 정확도 ${accuracy}%.`
+    + (record ? ' 최고 기록입니다.' : '');
+  resultLine.hidden = false;
+  statCpm.textContent = cpm;
+  statAcc.textContent = `${accuracy}%`;
+}
+
+input.addEventListener('input', () => {
+  if (!play || input.disabled) return;
+
+  if (!play.startedAt) {
+    play.startedAt = Date.now();
+    play.timer = setInterval(updateStats, 500);
+  }
+
+  const line = play.lines[play.at];
+  const typed = input.value;
+  for (let i = 0; i < typed.length; i++) {
+    if (typed[i] !== line[i]) play.wrong.add(i);
+  }
+
+  renderLine();
+  updateStats();
+
+  if (typed === line) {
+    play.correct += line.length;
+    play.missed += play.wrong.size;
+    play.wrong.clear();
+    play.at += 1;
+    input.value = '';
+
+    if (play.at >= play.lines.length) finishGame();
+    else { renderLine(); updateStats(); }
+  }
+});
+
+// 붙여넣기로 문장을 통째로 넣으면 기록이 의미를 잃는다.
+input.addEventListener('paste', (e) => e.preventDefault());
+
+// 연습 중에는 캔버스 단축키가 아니라 타자가 우선이다.
+input.addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  if (e.key === 'Escape') closeTyping();
+});
+
+document.getElementById('typing-open').addEventListener('click', openTyping);
+document.getElementById('typing-close').addEventListener('click', closeTyping);
+document.getElementById('typing-restart').addEventListener('click', startGame);
+game.addEventListener('pointerdown', (e) => {
+  if (e.target === game) closeTyping(); // 바깥을 누르면 닫는다
 });
 
 /* --- 시작 ------------------------------------------------------------- */

@@ -9,6 +9,7 @@ export const emptyState = () => ({
   notes: [],
   view: { x: 0, y: 0, scale: 1 },
   bannerClosed: false,
+  typingBest: { cpm: 0, accuracy: 0 },
 });
 
 export function load() {
@@ -23,6 +24,7 @@ export function load() {
         .map((n) => ({ searchable: true, created: idTime(n.id), ...n })),
       view: { ...emptyState().view, ...parsed.view },
       bannerClosed: parsed.bannerClosed === true,
+      typingBest: { ...emptyState().typingBest, ...parsed.typingBest },
     };
   } catch {
     // 손상된 데이터로 앱이 아예 안 뜨는 것보다 빈 캔버스가 낫다.
