@@ -4,6 +4,10 @@ const viewport = document.getElementById('viewport');
 const world = document.getElementById('world');
 const zoomLabel = document.getElementById('zoom');
 const hint = document.getElementById('hint');
+const panel = document.getElementById('search');
+const query = document.getElementById('query');
+const results = document.getElementById('results');
+const status = document.getElementById('search-status');
 
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 4;
@@ -40,6 +44,7 @@ function createNote(props) {
     src: null,
     width: null,
     fontSize: DEFAULT_FONT,
+    searchable: true, // 기본은 검색 대상. 체크를 풀면 메모 전용이 된다.
     ...props,
   };
   state.notes.push(note);
@@ -53,27 +58,45 @@ function removeNote(note) {
   els.get(note.id)?.remove();
   els.delete(note.id);
   save(state);
+  if (!panel.hidden) runSearch();
 }
 
 function renderNote(note) {
   const el = document.createElement('div');
-  el.className = note.src ? 'note image' : 'note';
+  el.className = 'note' + (note.src ? ' image' : '') + (note.searchable ? '' : ' private');
   el.dataset.id = note.id;
   el.style.left = `${note.x}px`;
   el.style.top = `${note.y}px`;
 
   const tools = document.createElement('div');
   tools.className = 'tools';
-  tools.innerHTML = note.src
+
+  const flag = document.createElement('label');
+  flag.className = 'flag';
+  flag.title = '체크를 켜면 검색 결과에 나오고, 끄면 메모 전용이 됩니다';
+  flag.innerHTML = '<input type="checkbox"><span>검색</span>';
+  flag.querySelector('input').checked = note.searchable;
+  flag.querySelector('input').addEventListener('change', (e) => {
+    note.searchable = e.target.checked;
+    el.classList.toggle('private', !note.searchable);
+    save(state);
+    if (!panel.hidden) runSearch();
+  });
+  tools.append(flag, Object.assign(document.createElement('span'), { className: 'sep' }));
+
+  const buttons = document.createElement('span');
+  buttons.innerHTML = note.src
     ? '<button data-act="del" class="danger" title="삭제">✕</button>'
     : '<button data-act="smaller" title="글자 작게">A−</button>' +
       '<button data-act="bigger" title="글자 크게">A+</button>' +
       '<button data-act="del" class="danger" title="삭제">✕</button>';
+  tools.append(...buttons.children);
   el.append(tools);
 
   if (note.src) {
     const img = document.createElement('img');
     img.src = note.src;
+    img.alt = '';
     if (note.width) img.style.width = `${note.width}px`;
     el.append(img);
   } else {
@@ -215,11 +238,18 @@ world.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+    e.preventDefault();
+    openSearch();
+    return;
+  }
+
   const selected = world.querySelector('.note.selected');
   if ((e.key === 'Backspace' || e.key === 'Delete') && selected) {
     e.preventDefault();
     removeNote(noteOf(selected));
   } else if (e.key === 'Escape') {
+    if (!panel.hidden) closeSearch();
     selectNote(null);
     document.activeElement?.blur();
   }
@@ -256,36 +286,90 @@ viewport.addEventListener('drop', (e) => {
   }
 });
 
-/* --- 화면 맞추기 ------------------------------------------------------- */
+/* --- 검색 -------------------------------------------------------------- */
 
-document.getElementById('reset').addEventListener('click', () => {
-  if (!state.notes.length) {
-    state.view = { x: 0, y: 0, scale: 1 };
-    applyView();
+function openSearch() {
+  panel.hidden = false;
+  query.select();
+  query.focus();
+  runSearch();
+}
+
+function closeSearch() {
+  panel.hidden = true;
+  world.querySelectorAll('.note.found').forEach((n) => n.classList.remove('found'));
+}
+
+/** 검색은 '검색' 체크가 켜진 텍스트 노트만 대상으로 한다. */
+function runSearch() {
+  const q = query.value.trim().toLowerCase();
+  const pool = state.notes.filter((n) => n.searchable && !n.src);
+  const skipped = state.notes.filter((n) => !n.searchable && !n.src).length;
+
+  results.replaceChildren();
+  world.querySelectorAll('.note.found').forEach((n) => n.classList.remove('found'));
+
+  if (!q) {
+    status.textContent = skipped
+      ? `검색 대상 ${pool.length}개 · 메모 전용 ${skipped}개는 제외됩니다`
+      : `검색 대상 ${pool.length}개`;
     return;
   }
 
-  const boxes = state.notes.map((n) => {
-    const el = els.get(n.id);
-    return { x: n.x, y: n.y, w: el.offsetWidth, h: el.offsetHeight };
-  });
-  const left = Math.min(...boxes.map((b) => b.x));
-  const top = Math.min(...boxes.map((b) => b.y));
-  const right = Math.max(...boxes.map((b) => b.x + b.w));
-  const bottom = Math.max(...boxes.map((b) => b.y + b.h));
+  const hits = pool.filter((n) => n.text.toLowerCase().includes(q));
+  status.textContent = hits.length
+    ? `${hits.length}개 찾음${skipped ? ` · 메모 전용 ${skipped}개 제외` : ''}`
+    : '결과가 없습니다';
 
-  const pad = 80;
-  const scale = Math.min(
-    MAX_SCALE,
-    Math.max(MIN_SCALE, Math.min(
-      innerWidth / (right - left + pad * 2),
-      innerHeight / (bottom - top + pad * 2),
-    )),
-  );
+  for (const note of hits) {
+    els.get(note.id).classList.add('found');
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.append(...highlight(note.text, q));
+    button.addEventListener('click', () => focusNote(note));
+
+    const li = document.createElement('li');
+    li.append(button);
+    results.append(li);
+  }
+}
+
+/** 일치 구간만 <mark>로 감싼다. 사용자 입력이므로 innerHTML은 쓰지 않는다. */
+function highlight(text, q) {
+  const nodes = [];
+  const lower = text.toLowerCase();
+  let from = 0;
+
+  for (let at = lower.indexOf(q); at !== -1; at = lower.indexOf(q, from)) {
+    if (at > from) nodes.push(document.createTextNode(text.slice(from, at)));
+    const mark = document.createElement('mark');
+    mark.textContent = text.slice(at, at + q.length);
+    nodes.push(mark);
+    from = at + q.length;
+  }
+  nodes.push(document.createTextNode(text.slice(from)));
+  return nodes;
+}
+
+/** 검색 결과를 누르면 해당 노트를 화면 가운데로 데려온다. */
+function focusNote(note) {
+  const el = els.get(note.id);
+  const scale = Math.max(state.view.scale, 1);
   state.view.scale = scale;
-  state.view.x = (innerWidth - (right - left) * scale) / 2 - left * scale;
-  state.view.y = (innerHeight - (bottom - top) * scale) / 2 - top * scale;
+  state.view.x = innerWidth / 2 - (note.x + el.offsetWidth / 2) * scale;
+  state.view.y = innerHeight / 2 - (note.y + el.offsetHeight / 2) * scale;
   applyView();
+  selectNote(el);
+}
+
+document.getElementById('search-open').addEventListener('click', openSearch);
+document.getElementById('search-close').addEventListener('click', closeSearch);
+query.addEventListener('input', runSearch);
+query.addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  if (e.key === 'Escape') closeSearch();
+  if (e.key === 'Enter') results.querySelector('button')?.click();
 });
 
 /* --- 시작 ------------------------------------------------------------- */

@@ -16,7 +16,9 @@ export function load() {
     if (!raw) return emptyState();
     const parsed = JSON.parse(raw);
     return {
-      notes: Array.isArray(parsed.notes) ? parsed.notes : [],
+      // searchable은 나중에 생긴 필드라, 옛 노트는 검색 대상으로 본다.
+      notes: (Array.isArray(parsed.notes) ? parsed.notes : [])
+        .map((n) => ({ searchable: true, ...n })),
       view: { ...emptyState().view, ...parsed.view },
     };
   } catch {

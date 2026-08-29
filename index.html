@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Canvas Notes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
@@ -11,11 +12,21 @@
     <div id="world"></div>
   </div>
 
-  <div id="hint">빈 곳을 더블클릭해 노트 만들기 · 이미지를 끌어다 놓기</div>
+  <p id="hint">빈 곳을 더블클릭해 노트 만들기 · 이미지를 끌어다 놓기</p>
 
   <div id="bar">
     <span id="zoom">100%</span>
+    <button id="search-open" type="button">검색</button>
     <button id="reset" type="button">화면 맞추기</button>
+  </div>
+
+  <div id="search" hidden>
+    <div class="head">
+      <input id="query" type="search" placeholder="검색할 내용" autocomplete="off" spellcheck="false">
+      <button id="search-close" type="button" title="닫기 (Esc)">✕</button>
+    </div>
+    <p id="search-status"></p>
+    <ul id="results"></ul>
   </div>
 
   <script type="module" src="src/main.js"></script>
