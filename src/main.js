@@ -516,6 +516,8 @@ const statBest = document.getElementById('stat-best');
 const picker = document.getElementById('typing-song');
 const ice = document.getElementById('ice');
 const iceLabel = document.getElementById('ice-label');
+const cube = ice.querySelector('.cube');
+const drops = [...ice.querySelectorAll('.drop')];
 
 const MAX_LINES = 8;
 
@@ -645,6 +647,7 @@ function startGame() {
   }
 
   play.total = play.lines.reduce((sum, line) => sum + line.length, 0);
+  freshIce();
   sourceLabel.textContent = `${song.note} · ${play.lines.length}줄`;
   resultLine.hidden = true;
   input.disabled = false;
@@ -688,6 +691,29 @@ function updateStats() {
 /** 틀린 자리 하나당 0.6글자만큼 다시 언다. 정확할수록 빨리 녹는다. */
 const WRONG_COST = 0.6;
 
+/** 얼음 윗면을 몇 개의 기둥으로 나눠 각각 다른 속도로 녹인다. */
+const MELT_COLUMNS = 11;
+let meltProfile = [];
+
+/** 판마다 다른 얼음이 되도록 기둥별 속도와 흔들림을 새로 뽑는다. */
+function freshIce() {
+  meltProfile = Array.from({ length: MELT_COLUMNS }, () => ({
+    rate: 0.7 + Math.random() * 0.6,   // 어떤 자리는 빨리, 어떤 자리는 더디게
+    wobble: Math.random() * 2 - 1,     // 녹는 도중 오르내리는 결
+  }));
+}
+
+/**
+ * 기둥 하나가 녹은 높이(0~1).
+ * 양 끝(0, 1)에서는 어긋남이 0이 되므로, 시작할 때는 평평하게 얼어 있고
+ * 다 녹으면 남김없이 사라지되 중간에는 자리마다 들쭉날쭉해진다.
+ */
+function columnDepth(m, { rate, wobble }) {
+  const spread = (rate - 1) * 2 * m * (1 - m);
+  const ripple = wobble * 0.05 * Math.sin(2 * Math.PI * m);
+  return Math.min(1, Math.max(0, m + spread + ripple));
+}
+
 function meltRatio() {
   const line = play.lines[play.at] ?? '';
   const typed = input.value;
@@ -703,6 +729,7 @@ function meltRatio() {
 function updateMelt() {
   const melt = meltRatio();
   ice.style.setProperty('--melt', melt.toFixed(3));
+  shapeIce(melt);
   ice.dataset.stage = melt >= 0.99 ? 'open' : melt >= 0.5 ? 'melting' : melt >= 0.15 ? 'cracking' : 'frozen';
   ice.classList.toggle('open', melt >= 0.99);
 
@@ -710,6 +737,27 @@ function updateMelt() {
     ? '보물이 드러났습니다'
     : `얼음 ${Math.round(melt * 100)}% 녹음`;
   return melt;
+}
+
+/** 녹은 경계를 다각형으로 그리고, 물방울을 그 자리 높이에 매단다. */
+function shapeIce(melt) {
+  if (!meltProfile.length) freshIce();
+
+  const depths = meltProfile.map((column) => columnDepth(melt, column));
+  const points = depths.map((depth, i) => {
+    const x = (i / (MELT_COLUMNS - 1)) * 100;
+    return `${x.toFixed(1)}% ${(depth * 100).toFixed(1)}%`;
+  });
+  cube.style.clipPath = `polygon(${points.join(', ')}, 100% 100%, 0% 100%)`;
+
+  for (const drop of drops) {
+    const at = Number(drop.dataset.at); // 0~1, 물방울이 매달린 가로 위치
+    const slot = at * (MELT_COLUMNS - 1);
+    const low = Math.floor(slot);
+    const high = Math.min(MELT_COLUMNS - 1, low + 1);
+    const depth = depths[low] + (depths[high] - depths[low]) * (slot - low);
+    drop.style.top = `${(depth * 100).toFixed(1)}%`;
+  }
 }
 
 function showBest() {

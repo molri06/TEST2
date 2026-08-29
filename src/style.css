@@ -772,11 +772,22 @@ body {
   margin-left: -79px;
 }
 
-/* 덩어리 자체. 위에서부터 잘려 나간다. */
+/* 잘려 나간 윤곽을 따라 젖은 테두리가 빛나도록 얼음 위에 한 겹 씌운다. */
+#ice .cube-glow {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 -1.5px 0 rgba(255, 255, 255, .75))
+          drop-shadow(0 1px 3px rgba(88, 168, 163, .3));
+}
+
+/*
+ * 덩어리 자체. 위에서부터 잘려 나가되, 자리마다 녹는 속도가 달라
+ * 경계가 들쭉날쭉해진다. 실제 clip-path 다각형은 JS가 매번 계산한다.
+ */
 #ice .cube {
   position: absolute;
   inset: 0;
-  clip-path: inset(calc(var(--melt) * 100%) 0 0 0);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   opacity: calc(.4 + (1 - var(--melt)) * .6);
   transition: clip-path .35s ease-out, opacity .35s;
 }
@@ -797,24 +808,10 @@ body {
   background: rgba(214, 235, 244, .18);
 }
 
-/* 녹아 내려가는 얼음의 윗면. */
-#ice .edge {
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  top: calc(var(--melt) * 100%);
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg,
-    rgba(255, 255, 255, .25), rgba(255, 255, 255, .95) 45%, rgba(255, 255, 255, .3));
-  opacity: calc(1 - var(--melt));
-  transition: top .35s ease-out, opacity .35s;
-}
-
 /* 녹아 내린 물이 얼음 윗면에서 떨어진다. */
 #ice .drop {
   position: absolute;
-  top: calc(var(--melt) * 100%);
+  top: 0; /* JS가 그 자리의 녹은 높이에 맞춰 옮긴다 */
   width: 5px;
   height: 7px;
   border-radius: 0 60% 60% 60%;
@@ -866,7 +863,7 @@ body {
 #ice.open #ice-label { color: var(--t-accent); font-weight: 500; }
 
 @media (prefers-reduced-motion: reduce) {
-  #ice .chest, #ice .cube, #ice .edge, #ice .puddle { transition: none; }
+  #ice .chest, #ice .cube, #ice .puddle { transition: none; }
   #ice .drop, #ice.open .sparkle { animation: none; }
   #ice.open .sparkle { opacity: 1; }
 }
