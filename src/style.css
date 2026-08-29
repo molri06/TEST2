@@ -683,15 +683,17 @@ body {
 /* --- 얼음과 보물 -------------------------------------------------------- */
 
 /*
- * --melt(0~1)이 커질수록 얼음이 위로 물러나고 흐림이 걷힌다.
+ * --melt(0~1)이 커질수록 얼음덩어리가 위에서부터 깎여 내려간다.
  * 값은 정확히 친 글자 수에서 틀린 자리를 뺀 만큼 JS가 올린다.
  */
 #ice {
   position: relative;
-  height: 132px;
+  height: 168px;
   border: 1px solid var(--t-border);
   border-radius: 10px;
-  background: linear-gradient(180deg, var(--t-field), var(--t-card));
+  background:
+    radial-gradient(120% 80% at 50% 110%, rgba(88, 168, 163, .12), transparent 70%),
+    linear-gradient(180deg, var(--t-field), var(--t-card));
   overflow: hidden;
 }
 
@@ -701,83 +703,87 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 20px; /* 아래 안내 문구와 겹치지 않게 */
-  transform: scale(calc(.86 + var(--melt) * .14));
+  padding-bottom: 26px;
+  transform: scale(calc(.9 + var(--melt) * .1));
   transition: transform .35s ease-out;
 }
 
 #ice .chest svg {
-  width: 132px;
+  width: 146px;
   height: auto;
-  filter: drop-shadow(0 3px 6px rgba(44, 59, 62, .16));
+  filter: drop-shadow(0 4px 10px rgba(44, 59, 62, .22));
 }
 
 #ice .sparkle {
   position: absolute;
-  color: var(--t-accent);
+  color: #f3c96b;
   font-size: 15px;
   opacity: 0;
   transition: opacity .3s;
+  text-shadow: 0 0 8px rgba(243, 201, 107, .8);
 }
 
-#ice .s1 { top: 16%; left: 26%; }
-#ice .s2 { top: 24%; right: 24%; font-size: 12px; }
-#ice .s3 { bottom: 24%; left: 34%; font-size: 11px; }
+#ice .s1 { top: 14%; left: 27%; }
+#ice .s2 { top: 20%; right: 26%; font-size: 12px; }
+#ice .s3 { top: 32%; left: 46%; font-size: 11px; }
 
 #ice.open .sparkle { opacity: 1; animation: twinkle 1.6s ease-in-out infinite; }
 #ice.open .s2 { animation-delay: .35s; }
 #ice.open .s3 { animation-delay: .7s; }
 
 @keyframes twinkle {
-  0%, 100% { opacity: .25; transform: scale(.85); }
+  0%, 100% { opacity: .3; transform: scale(.85); }
   50% { opacity: 1; transform: scale(1.15); }
 }
 
-/*
- * 얼음층. 위에서부터 녹아 아래로 물러난다.
- * clip-path로 윗부분을 깎아 내므로 안에 그린 균열이 찌그러지지 않는다.
- */
-#ice .frost {
+/* 얼음덩어리가 놓인 자리. 녹는 경계선과 물방울이 이 상자를 기준으로 움직인다. */
+#ice .block {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 158px;
+  height: 138px;
+  margin-left: -79px;
+}
+
+/* 덩어리 자체. 위에서부터 잘려 나간다. */
+#ice .cube {
   position: absolute;
   inset: 0;
   clip-path: inset(calc(var(--melt) * 100%) 0 0 0);
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, .82), rgba(172, 211, 226, .72) 55%, rgba(88, 168, 163, .5)),
-    var(--t-now);
-  backdrop-filter: blur(calc((1 - var(--melt)) * 5px));
+  opacity: calc(.4 + (1 - var(--melt)) * .6);
   transition: clip-path .35s ease-out, opacity .35s;
-  opacity: calc(.35 + (1 - var(--melt)) * .65);
+}
+
+#ice .cube svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 얼음 너머가 굴절돼 보이도록 뒤를 흐린다. 육각형은 정육면체의 실루엣. */
+#ice .glass {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 7%, 94% 30%, 94% 70%, 50% 93%, 6% 70%, 6% 30%);
+  backdrop-filter: blur(calc((1 - var(--melt)) * 4px));
+  background: rgba(214, 235, 244, .18);
 }
 
 /* 녹아 내려가는 얼음의 윗면. */
 #ice .edge {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 8%;
+  right: 8%;
   top: calc(var(--melt) * 100%);
   height: 2px;
+  border-radius: 2px;
   background: linear-gradient(90deg,
-    rgba(255, 255, 255, .5), rgba(255, 255, 255, .95) 40%, rgba(255, 255, 255, .55));
+    rgba(255, 255, 255, .25), rgba(255, 255, 255, .95) 45%, rgba(255, 255, 255, .3));
   opacity: calc(1 - var(--melt));
   transition: top .35s ease-out, opacity .35s;
 }
-
-#ice .crack {
-  position: absolute;
-  width: 1.5px;
-  background: rgba(255, 255, 255, .9);
-  opacity: 0;
-  transition: opacity .3s;
-}
-
-#ice .c1 { top: 6%; left: 30%; height: 42%; transform: rotate(16deg); }
-#ice .c2 { top: 12%; left: 58%; height: 34%; transform: rotate(-22deg); }
-#ice .c3 { top: 30%; left: 44%; height: 30%; transform: rotate(8deg); }
-
-#ice[data-stage="cracking"] .c1,
-#ice[data-stage="melting"] .c1,
-#ice[data-stage="melting"] .c2,
-#ice[data-stage="melting"] .c3 { opacity: .9; }
 
 /* 녹아 내린 물이 얼음 윗면에서 떨어진다. */
 #ice .drop {
@@ -791,9 +797,9 @@ body {
   transform: rotate(45deg);
 }
 
-#ice .d1 { left: 24%; }
+#ice .d1 { left: 26%; }
 #ice .d2 { left: 52%; }
-#ice .d3 { left: 76%; }
+#ice .d3 { left: 74%; }
 
 #ice[data-stage="cracking"] .drop,
 #ice[data-stage="melting"] .drop { animation: drip 1.5s ease-in infinite; }
@@ -803,7 +809,21 @@ body {
 @keyframes drip {
   0% { opacity: 0; transform: translateY(-4px) rotate(45deg) scale(.7); }
   25% { opacity: .95; }
-  100% { opacity: 0; transform: translateY(24px) rotate(45deg) scale(1); }
+  100% { opacity: 0; transform: translateY(26px) rotate(45deg) scale(1); }
+}
+
+/* 녹은 물이 고이는 자리. */
+#ice .puddle {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: calc(60px + var(--melt) * 78px);
+  height: 11px;
+  margin-left: calc((60px + var(--melt) * 78px) / -2);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(172, 211, 226, .75), rgba(172, 211, 226, 0));
+  opacity: calc(var(--melt) * .9);
+  transition: width .35s ease-out, margin-left .35s ease-out, opacity .35s;
 }
 
 #ice-label {
@@ -820,7 +840,7 @@ body {
 #ice.open #ice-label { color: var(--t-accent); font-weight: 500; }
 
 @media (prefers-reduced-motion: reduce) {
-  #ice .chest, #ice .frost { transition: none; }
+  #ice .chest, #ice .cube, #ice .edge, #ice .puddle { transition: none; }
   #ice .drop, #ice.open .sparkle { animation: none; }
   #ice.open .sparkle { opacity: 1; }
 }

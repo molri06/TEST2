@@ -57,33 +57,135 @@
 
       <div id="ice" style="--melt: 0">
         <div class="chest">
-          <svg viewBox="0 0 120 88" aria-hidden="true">
-            <ellipse cx="60" cy="80" rx="42" ry="6" fill="#cccadf" opacity=".5"/>
-            <path d="M22 40a38 30 0 0 1 76 0z" fill="#58a8a3"/>
-            <path d="M22 40h76v30a6 6 0 0 1-6 6H28a6 6 0 0 1-6-6z" fill="#fddcc2"/>
-            <rect x="52" y="32" width="16" height="22" rx="3" fill="#fbf6d0"/>
-            <circle cx="60" cy="43" r="3.4" fill="#58a8a3"/>
-            <path d="M22 40h76" stroke="#fbb3ab" stroke-width="3"/>
-            <circle cx="38" cy="60" r="4" fill="#fbb3ab"/>
-            <circle cx="82" cy="60" r="4" fill="#acd3e2"/>
-            <circle cx="60" cy="66" r="3" fill="#cccadf"/>
+          <svg viewBox="0 0 150 122" aria-hidden="true">
+            <defs>
+              <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#94663f"/>
+                <stop offset="1" stop-color="#6b4526"/>
+              </linearGradient>
+              <linearGradient id="lidwood" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#a2724a"/>
+                <stop offset="1" stop-color="#7d5230"/>
+              </linearGradient>
+              <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#f4d47c"/>
+                <stop offset=".5" stop-color="#e5b64f"/>
+                <stop offset="1" stop-color="#c9962f"/>
+              </linearGradient>
+              <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+                <stop offset="0" stop-color="#ffe6a3" stop-opacity="1"/>
+                <stop offset=".55" stop-color="#ffd076" stop-opacity=".7"/>
+                <stop offset="1" stop-color="#ffc85e" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+
+            <ellipse cx="75" cy="112" rx="52" ry="7" fill="#4a3a2c" opacity=".18"/>
+
+            <!-- 뒤로 젖혀 열린 뚜껑 -->
+            <g transform="rotate(24 130 58)">
+              <path d="M20 58a55 33 0 0 1 110 0z" fill="url(#lidwood)"/>
+              <path d="M28 58a47 26 0 0 1 94 0z" fill="#2e2118"/>
+              <path d="M20 58a55 33 0 0 1 110 0" fill="none" stroke="url(#gold)" stroke-width="5"/>
+              <path d="M75 25v33" stroke="url(#gold)" stroke-width="5"/>
+              <circle cx="75" cy="31" r="2" fill="#8a6a22" opacity=".55"/>
+              <path d="M20 58h110" stroke="url(#gold)" stroke-width="4"/>
+            </g>
+
+            <!-- 상자 안쪽에서 새어 나오는 빛 -->
+            <ellipse cx="72" cy="54" rx="44" ry="17" fill="url(#glow)" opacity=".9"/>
+            <g fill="#fff3cf">
+              <circle cx="52" cy="48" r="1.6"/>
+              <circle cx="92" cy="44" r="1.3"/>
+              <circle cx="74" cy="38" r="1.1"/>
+              <circle cx="104" cy="52" r="1.5"/>
+            </g>
+
+            <!-- 상자 몸통 -->
+            <path d="M18 58h114v40a8 8 0 0 1-8 8H26a8 8 0 0 1-8-8z" fill="url(#wood)"/>
+            <g stroke="#5b3a20" stroke-width="1" opacity=".45">
+              <path d="M24 70h102M24 84h102M24 96h102"/>
+            </g>
+
+            <!-- 황금 테두리와 잠금장치 -->
+            <path d="M14 54h122v9H14z" fill="url(#gold)"/>
+            <path d="M18 63h13v43H18zM119 63h13v43h-13z" fill="url(#gold)"/>
+            <path d="M66 63h18v43H66z" fill="url(#gold)"/>
+            <g fill="#a97c23" opacity=".65">
+              <circle cx="24" cy="72" r="1.5"/><circle cx="24" cy="88" r="1.5"/>
+              <circle cx="126" cy="72" r="1.5"/><circle cx="126" cy="88" r="1.5"/>
+              <circle cx="70" cy="100" r="1.4"/><circle cx="80" cy="100" r="1.4"/>
+            </g>
+
+            <path d="M69 78a6 6 0 0 1 12 0v5H69z" fill="none" stroke="url(#gold)" stroke-width="3.4"/>
+            <rect x="63" y="82" width="24" height="19" rx="4" fill="url(#gold)"/>
+            <circle cx="75" cy="89" r="3" fill="#5b3a20"/>
+            <path d="M74 91h2l1 6h-4z" fill="#5b3a20"/>
+
+            <circle cx="104" cy="86" r="6.5" fill="none" stroke="url(#gold)" stroke-width="3"/>
           </svg>
           <span class="sparkle s1">✦</span>
           <span class="sparkle s2">✦</span>
           <span class="sparkle s3">✦</span>
         </div>
 
-        <div class="frost">
-          <span class="crack c1"></span>
-          <span class="crack c2"></span>
-          <span class="crack c3"></span>
+        <div class="block">
+          <div class="cube">
+            <span class="glass"></span>
+            <svg viewBox="0 0 150 132" aria-hidden="true">
+              <defs>
+                <linearGradient id="ice-top" x1="0" y1="0" x2=".7" y2="1">
+                  <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+                  <stop offset="1" stop-color="#d6ebf4" stop-opacity=".76"/>
+                </linearGradient>
+                <linearGradient id="ice-left" x1="0" y1="0" x2=".3" y2="1">
+                  <stop offset="0" stop-color="#cde3ee" stop-opacity=".68"/>
+                  <stop offset="1" stop-color="#9dc2d3" stop-opacity=".52"/>
+                </linearGradient>
+                <linearGradient id="ice-right" x1="1" y1="0" x2=".2" y2="1">
+                  <stop offset="0" stop-color="#f0f8fb" stop-opacity=".6"/>
+                  <stop offset="1" stop-color="#b3d2e0" stop-opacity=".44"/>
+                </linearGradient>
+              </defs>
+
+              <!-- 세 면 -->
+              <path d="M75 9 141 39 75 69 9 39z" fill="url(#ice-top)"/>
+              <path d="M9 39 75 69v54L9 93z" fill="url(#ice-left)"/>
+              <path d="M141 39 75 69v54l66-30z" fill="url(#ice-right)"/>
+
+              <!-- 안쪽 균열과 기포 -->
+              <g fill="#ffffff" opacity=".62">
+                <path d="M52 26c8 3 13 8 11 12-2 4-9 3-13-1s-6-10 2-11z"/>
+                <path d="M96 30c6 1 9 5 6 8s-10 2-12-2 1-6 6-6z"/>
+                <path d="M33 58c7 6 10 14 7 18s-10 0-12-7 0-14 5-11z"/>
+                <path d="M58 86c6 5 8 13 5 16s-9-1-11-8 1-11 6-8z"/>
+                <path d="M104 62c7 4 9 12 6 16s-10 0-12-7 1-12 6-9z"/>
+                <path d="M120 84c4 3 5 9 3 11s-6 0-7-5 0-8 4-6z"/>
+              </g>
+              <g stroke="#ffffff" stroke-linecap="round" fill="none" opacity=".55">
+                <path d="M40 33c9 4 20 6 31 5" stroke-width="1.6"/>
+                <path d="M84 46c10-2 19-6 25-11" stroke-width="1.4"/>
+                <path d="M25 70c5 9 9 20 10 30" stroke-width="1.3"/>
+                <path d="M112 74c-3 10-5 20-4 29" stroke-width="1.2"/>
+                <path d="M75 69v54" stroke-width="1.1" opacity=".7"/>
+              </g>
+
+              <!-- 모서리 하이라이트 -->
+              <g fill="none" stroke-linejoin="round">
+                <path d="M75 9 141 39 75 69 9 39z" stroke="#ffffff" stroke-width="2.2" opacity=".9"/>
+                <path d="M9 39v54l66 30 66-30V39" stroke="#ffffff" stroke-width="1.6" opacity=".55"/>
+                <path d="M75 69v54" stroke="#ffffff" stroke-width="1.4" opacity=".5"/>
+                <path d="M18 43 70 66" stroke="#ffffff" stroke-width="2" opacity=".45"/>
+              </g>
+            </svg>
+          </div>
+
+          <span class="edge"></span>
+          <span class="drop d1"></span>
+          <span class="drop d2"></span>
+          <span class="drop d3"></span>
         </div>
 
-        <span class="edge"></span>
-        <span class="drop d1"></span>
-        <span class="drop d2"></span>
-        <span class="drop d3"></span>
-
+        <span class="puddle"></span>
         <p id="ice-label">얼음 속에 무언가 있습니다</p>
       </div>
 
